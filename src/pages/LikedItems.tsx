@@ -1,11 +1,13 @@
-import { Heart, MessageCircle, ArrowLeft, Search, Filter, MapPin } from 'lucide-react';
+import { Heart, MessageCircle, ArrowLeft, Search, Filter, X } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 import Header from '@/components/Header';
+import SwipeableCard from '@/components/SwipeableCard';
 
 // Dados de exemplo - em uma aplicação real, isso viria de uma API
 const mockLikedItems = [
@@ -60,8 +62,9 @@ const LikedItems = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [items, setItems] = useState(mockLikedItems);
 
-  const filteredItems = mockLikedItems.filter(item => {
+  const filteredItems = items.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.user.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = activeFilter === 'all' || 
@@ -69,6 +72,21 @@ const LikedItems = () => {
     
     return matchesSearch && matchesFilter;
   });
+
+  const handleSwipeLeft = (itemId: string) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    toast.error('Item removido dos favoritos');
+  };
+
+  const handleSwipeRight = (itemId: string) => {
+    // Aqui você pode adicionar lógica para iniciar uma conversa ou marcar como favorito
+    const item = items.find(item => item.id === itemId);
+    if (item) {
+      toast.success(`Você gostou de ${item.title}`);
+      // Remove imediatamente para mostrar o próximo
+      setItems(prevItems => prevItems.filter(i => i.id !== itemId));
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent/10 via-background to-accent/5">
@@ -113,93 +131,89 @@ const LikedItems = () => {
 
         {/* Lista de Itens Curtidos */}
         {filteredItems.length > 0 ? (
-          <div className="grid gap-4">
-            {filteredItems.map((item) => (
-              <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
-                <div className="flex flex-col sm:flex-row">
-                  {/* Imagem do Item */}
-                  <div className="w-full sm:w-40 h-48 sm:h-auto relative">
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
+          <div className="space-y-6">
+            <div className="text-center text-sm text-muted-foreground">
+              Arraste para a direita para Gostei • Arraste para a esquerda para Remover
+            </div>
+            
+            <div className="relative h-[500px] w-full max-w-md mx-auto">
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item, index) => (
+                  <div 
+                    key={item.id} 
+                    className="absolute top-0 left-0 w-full h-full"
+                    style={{
+                      zIndex: filteredItems.length - index,
+                      transform: `scale(${1 - index * 0.05}) translateY(${index * 10}px)`,
+                      opacity: 1 - (index * 0.1)
+                    }}
+                  >
+                    <SwipeableCard
+                      item={item}
+                      onSwipeLeft={() => handleSwipeLeft(item.id)}
+                      onSwipeRight={() => handleSwipeRight(item.id)}
                     />
-                    {item.isMatched && (
-                      <div className="absolute top-2 right-2">
-                        <div className="bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center">
-                          <Heart className="w-3 h-3 mr-1 fill-current" />
-                          Match!
-                        </div>
-                      </div>
-                    )}
                   </div>
-                  
-                  {/* Detalhes do Item */}
-                  <div className="flex-1 p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium text-lg text-foreground">{item.title}</h3>
-                        <div className="flex items-center mt-1">
-                          <Badge variant={item.type === 'Doação' ? 'secondary' : 'default'} className="text-xs">
+                ))
+              ) : (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-muted-foreground">Nenhum item para mostrar</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Ações de botão para dispositivos móveis */}
+            <div className="flex justify-center gap-4 mt-6 sm:hidden">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-16 w-16 rounded-full"
+                onClick={() => filteredItems[0] && handleSwipeLeft(filteredItems[0].id)}
+              >
+                <X className="h-8 w-8" />
+              </Button>
+              <Button 
+                variant="default" 
+                size="icon" 
+                className="h-16 w-16 rounded-full bg-green-500 hover:bg-green-600"
+                onClick={() => filteredItems[0] && handleSwipeRight(filteredItems[0].id)}
+              >
+                <Heart className="h-8 w-8 fill-white" />
+              </Button>
+            </div>
+            
+            {/* Lista de itens restantes */}
+            {filteredItems.length > 1 && (
+              <div className="mt-8">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Próximos itens</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {filteredItems.slice(1, 4).map((item, index) => (
+                    <Card key={item.id} className="overflow-hidden opacity-70 hover:opacity-100 transition-opacity">
+                      <div className="relative aspect-square">
+                        <img
+                          src={item.image}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <CardContent className="p-2">
+                        <p className="text-xs font-medium truncate">{item.title}</p>
+                        <div className="flex justify-between items-center mt-1">
+                          <Badge variant="outline" className="text-[10px] h-5">
                             {item.type}
                           </Badge>
                           {item.price && (
-                            <span className="ml-2 text-sm font-medium text-foreground">
+                            <span className="text-xs font-medium">
                               {item.price}
                             </span>
                           )}
                         </div>
-                        <div className="mt-2 text-sm text-muted-foreground flex items-center">
-                          <MapPin className="w-3.5 h-3.5 mr-1" />
-                          {item.location} • {item.timeAgo}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Info do Anunciante */}
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <div className="flex items-center">
-                        <img
-                          src={item.user.avatar}
-                          alt={item.user.name}
-                          className="w-8 h-8 rounded-full object-cover mr-2"
-                        />
-                        <div>
-                          <p className="text-sm font-medium">{item.user.name}</p>
-                          <div className="flex items-center">
-                            {[...Array(5)].map((_, i) => (
-                              <svg
-                                key={i}
-                                className={`w-3 h-3 ${i < Math.floor(item.user.rating) ? 'text-yellow-400' : 'text-gray-300'}`}
-                                fill="currentColor"
-                                viewBox="0 0 20 20"
-                              >
-                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                              </svg>
-                            ))}
-                            <span className="text-xs text-muted-foreground ml-1">
-                              {item.user.rating.toFixed(1)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                
-                {/* Ações */}
-                <CardFooter className="bg-muted/30 p-4 flex justify-end gap-2">
-                  <Button variant="outline" size="sm">
-                    <Heart className="w-4 h-4 mr-2 fill-current" />
-                    {item.isMatched ? 'Match!' : 'Curtido'}
-                  </Button>
-                  <Button size="sm" className="gap-2">
-                    <MessageCircle className="w-4 h-4" />
-                    {item.isMatched ? 'Conversar' : 'Solicitar'}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-16">

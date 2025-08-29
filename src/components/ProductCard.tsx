@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Heart, X, MapPin, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +27,15 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
   const [isAnimating, setIsAnimating] = useState<'right' | 'left' | null>(null);
   const { t } = useLanguage();
 
+  // Drag state
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const rotation = position.x * 0.05;
+  const likeOpacity = Math.max(0, Math.min(1, position.x / 100));
+  const dislikeOpacity = Math.max(0, Math.min(1, -position.x / 100));
+
   const handleLove = () => {
     setIsAnimating('right');
     setTimeout(() => {
@@ -43,6 +52,67 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
     }, 300);
   };
 
+  // Drag handlers
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setStartPos({ x: clientX, y: clientY });
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (e: TouchEvent | MouseEvent) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    const clientX = 'touches' in e ? (e as TouchEvent).touches[0].clientX : (e as MouseEvent).clientX;
+    const clientY = 'touches' in e ? (e as TouchEvent).touches[0].clientY : (e as MouseEvent).clientY;
+    const deltaX = clientX - startPos.x;
+    const deltaY = clientY - startPos.y;
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      setPosition({ x: deltaX, y: 0 });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    const threshold = 50;
+    if (position.x > threshold) {
+      setPosition({ x: 500, y: 0 });
+      onSwipeRight(product.id);
+    } else if (position.x < -threshold) {
+      setPosition({ x: -500, y: 0 });
+      onSwipeLeft(product.id);
+    } else {
+      setPosition({ x: 0, y: 0 });
+    }
+    setIsDragging(false);
+  };
+
+  // Reset position when product changes
+  useEffect(() => {
+    setPosition({ x: 0, y: 0 });
+    setIsAnimating(null);
+  }, [product.id]);
+
+  // Attach global listeners during drag
+  useEffect(() => {
+    const mm = (e: MouseEvent) => handlePointerMove(e);
+    const mu = () => handleTouchEnd();
+    const tm = (e: TouchEvent) => handlePointerMove(e);
+    const tu = () => handleTouchEnd();
+    if (isDragging) {
+      window.addEventListener('mousemove', mm);
+      window.addEventListener('mouseup', mu);
+      window.addEventListener('touchmove', tm, { passive: false });
+      window.addEventListener('touchend', tu);
+    }
+    return () => {
+      window.removeEventListener('mousemove', mm);
+      window.removeEventListener('mouseup', mu);
+      window.removeEventListener('touchmove', tm as any);
+      window.removeEventListener('touchend', tu);
+    };
+  }, [isDragging, position, startPos]);
+
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length);
   };
@@ -53,10 +123,18 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
 
   return (
     <div 
+      ref={cardRef}
       className={`relative w-full max-w-sm mx-auto bg-gradient-card rounded-3xl shadow-card overflow-hidden transform transition-all duration-300 ${
         isAnimating === 'right' ? 'animate-swipe-right' : 
         isAnimating === 'left' ? 'animate-swipe-left' : ''
       }`}
+      style={{
+        transform: `${isAnimating ? '' : `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`}`,
+        opacity: isAnimating ? 1 : 1 - Math.min(0.5, Math.abs(position.x) / 300),
+        touchAction: 'none',
+      }}
+      onTouchStart={handleTouchStart}
+      onMouseDown={handleTouchStart}
     >
       {/* Image Container */}
       <div className="relative h-96 overflow-hidden">
@@ -147,6 +225,28 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
           </Button>
         </div>
       </div>
+
+      {/* Swipe overlay labels */}
+      {Math.abs(position.x) > 10 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          {position.x > 0 && (
+            <div 
+              className="p-4 bg-green-500/20 rounded-full text-green-600 font-bold text-xl"
+              style={{ opacity: likeOpacity }}
+            >
+              Gostei
+            </div>
+          )}
+          {position.x < 0 && (
+            <div 
+              className="p-4 bg-red-500/20 rounded-full text-red-600 font-bold text-xl"
+              style={{ opacity: dislikeOpacity }}
+            >
+              Remover
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,0 +1,340 @@
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { useToast } from "@/hooks/use-toast";
+import Header from "@/components/Header";
+import { useLanguage } from "@/contexts/LanguageContext";
+
+const MAX_IMAGES = 6;
+
+const schema = z.object({
+  title: z.string().min(3, "Informe um título (min. 3 caracteres)"),
+  description: z.string().min(10, "Descreva melhor seu item (min. 10 caracteres)"),
+  category: z.string({ required_error: "Selecione uma categoria" }),
+  price: z
+    .string()
+    .refine((v) => v === "" || !Number.isNaN(Number(String(v).replace(/[,]/g, "."))), {
+      message: "Valor inválido",
+    }),
+  type: z.enum(["troca", "doacao"], {
+    required_error: "Selecione se é troca ou doação",
+  }),
+  images: z
+    .instanceof(FileList)
+    .refine((files) => files.length <= MAX_IMAGES, `Máximo de ${MAX_IMAGES} imagens`)
+    .optional(),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const categories = [
+  { value: "eletronicos", label: "Eletrônicos" },
+  { value: "moveis", label: "Móveis" },
+  { value: "roupas", label: "Roupas" },
+  { value: "livros", label: "Livros" },
+  { value: "outros", label: "Outros" },
+];
+
+export default function AddItem() {
+  const { toast } = useToast();
+  const { t } = useLanguage();
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      title: "",
+      description: "",
+      category: "",
+      price: "",
+      type: "troca",
+    },
+  });
+
+  const imagesWatch = form.watch("images");
+  const descriptionWatch = form.watch("description") || "";
+  const titleWatch = form.watch("title") || "";
+
+  useEffect(() => {
+    const files = imagesWatch;
+    if (!files || files.length === 0) {
+      setPreviews([]);
+      return;
+    }
+
+    const urls = Array.from(files)
+      .slice(0, MAX_IMAGES)
+      .map((file) => URL.createObjectURL(file));
+
+    setPreviews((prev) => {
+      prev.forEach((u) => URL.revokeObjectURL(u));
+      return urls;
+    });
+
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [imagesWatch]);
+
+  const imagesCount = useMemo(() => previews.length, [previews]);
+  const imagesProgress = useMemo(() => (imagesCount / MAX_IMAGES) * 100, [imagesCount]);
+
+  const onSubmit = (values: FormValues) => {
+    // Simula envio; aqui poderíamos enviar para API
+    toast({
+      title: "Item adicionado!",
+      description: `"${values.title}" cadastrado como ${values.type === "troca" ? "Troca" : "Doação"}.`,
+    });
+    form.reset({ title: "", description: "", category: "", price: "", type: "troca" });
+    setPreviews([]);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-accent via-background to-accent/50 pb-24">
+      <Header title={t('add')} showLanguageSelector showNotifications />
+      <div className="max-w-2xl mx-auto px-4 pt-20 space-y-4">
+        <div className="relative overflow-hidden rounded-xl border bg-card p-4 shadow-sm animate-in fade-in-50 slide-in-from-top-2">
+          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(1200px 200px at 10% -10%, hsl(var(--primary)/0.10), transparent 40%)" }} />
+          <div className="relative flex items-start gap-3">
+            <Badge className="bg-gradient-primary text-primary-foreground">Novo</Badge>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Preencha os dados do item que deseja anunciar para troca ou doação. Capriche nas fotos e descrição!</p>
+            </div>
+          </div>
+        </div>
+        <Card className="border-border/60 animate-in fade-in-50 zoom-in-95">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Adicionar Item</span>
+              {titleWatch && (
+                <span className="text-xs text-muted-foreground">Prévia do título: {titleWatch}</span>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Título</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ex.: Notebook usado, sofá, etc." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Textarea placeholder="Descreva o estado, acessórios, medidas, etc." rows={4} {...field} className="pr-16" />
+                          <div className="absolute right-2 bottom-2 text-xs text-muted-foreground">
+                            {descriptionWatch.length}/500
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((c) => (
+                                <SelectItem key={c.value} value={c.value}>
+                                  {c.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valor estimado (opcional)</FormLabel>
+                        <FormControl>
+                          <Input inputMode="decimal" placeholder="Ex.: 250" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          className="grid grid-cols-2 gap-4"
+                        >
+                          <div className="flex items-center space-x-2 rounded-lg border p-3">
+                            <RadioGroupItem value="troca" id="troca" />
+                            <label htmlFor="troca" className="text-sm font-medium leading-none">
+                              Troca
+                            </label>
+                          </div>
+                          <div className="flex items-center space-x-2 rounded-lg border p-3">
+                            <RadioGroupItem value="doacao" id="doacao" />
+                            <label htmlFor="doacao" className="text-sm font-medium leading-none">
+                              Doação
+                            </label>
+                          </div>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="images"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Imagens (até {MAX_IMAGES})</FormLabel>
+                      <FormControl>
+                        <div
+                          className={
+                            `relative mt-1 flex flex-col items-center justify-center gap-2 rounded-lg border bg-background/50 p-6 text-center transition-colors ${
+                              isDragging ? 'border-primary/70 bg-accent' : 'border-dashed hover:border-primary/50'
+                            }`
+                          }
+                          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                          onDragLeave={() => setIsDragging(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+                            const dt = new DataTransfer();
+                            Array.from(e.dataTransfer.files)
+                              .slice(0, MAX_IMAGES)
+                              .forEach((f) => dt.items.add(f));
+                            field.onChange(dt.files);
+                          }}
+                        >
+                          <input
+                            className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={(e) => field.onChange(e.target.files)}
+                          />
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="pointer-events-none select-none">
+                                <p className="text-sm text-muted-foreground">Arraste as imagens aqui ou clique para selecionar</p>
+                                <p className="text-xs text-muted-foreground">Máx. {MAX_IMAGES} imagens • Formatos: JPG, PNG, WEBP</p>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>Você pode soltar múltiplas imagens de uma vez</TooltipContent>
+                          </Tooltip>
+                          <div className="w-full mt-3 space-y-2">
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <span>{imagesCount} / {MAX_IMAGES} selecionadas</span>
+                              <span>{Math.round(imagesProgress)}%</span>
+                            </div>
+                            <Progress value={imagesProgress} className="h-2" />
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                      {imagesCount > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-3">
+                          {previews.map((src, idx) => (
+                            <div key={idx} className="relative aspect-square overflow-hidden rounded-md border group animate-in fade-in-50">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={src} alt={`preview-${idx}`} className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex gap-3">
+                  <Button type="submit" className="bg-gradient-primary text-white transition-transform hover:scale-[1.02] active:scale-[0.99]">Salvar</Button>
+                  <Button type="button" variant="secondary" onClick={() => { form.reset(); setPreviews([]); }}>
+                    Limpar
+                  </Button>
+                </div>
+
+                <Separator />
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Dicas para um anúncio de sucesso</h3>
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="fotos">
+                      <AccordionTrigger>Fotos de qualidade</AccordionTrigger>
+                      <AccordionContent>
+                        Fotografe com boa iluminação e diferentes ângulos. Mostre detalhes e possíveis avarias.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="descricao">
+                      <AccordionTrigger>Descrição completa</AccordionTrigger>
+                      <AccordionContent>
+                        Especifique estado de uso, tempo de uso, acessórios inclusos, medidas e motivos para troca/doação.
+                      </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="categoria">
+                      <AccordionTrigger>Categoria e valor</AccordionTrigger>
+                      <AccordionContent>
+                        Escolha a categoria correta e, se desejar, informe um valor de referência para facilitar negociações.
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

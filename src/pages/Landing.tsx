@@ -18,6 +18,8 @@ const Landing = () => {
   const [visible, setVisible] = useState<Set<string>>(new Set());
   const [progress, setProgress] = useState(0);
   const [heroOffset, setHeroOffset] = useState(0);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installHint, setInstallHint] = useState<string>("");
 
   // Smooth scroll with header offset via scroll-margin on sections
   const onNavClick = useCallback((id: string) => {
@@ -66,6 +68,53 @@ const Landing = () => {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // PWA install flow: capture beforeinstallprompt and appinstalled
+  useEffect(() => {
+    const onBeforeInstall = (e: any) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setInstallHint("");
+    };
+    const onInstalled = () => {
+      setInstallPrompt(null);
+      setInstallHint("App instalado! Você já pode abrir pelo atalho.");
+    };
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
+    window.addEventListener('appinstalled', onInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    // If browser provided a deferred prompt, use it
+    if (installPrompt) {
+      installPrompt.prompt();
+      const choice = await installPrompt.userChoice.catch(() => null);
+      setInstallPrompt(null);
+      if (choice && choice.outcome === 'accepted') return;
+      // If dismissed, keep a hint
+      setInstallHint("Você pode instalar pelo menu do navegador.");
+      return;
+    }
+
+    // Fallbacks per platform
+    const ua = navigator.userAgent || navigator.vendor;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !('MSStream' in window);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    if (isStandalone) {
+      setInstallHint("O app já está instalado.");
+      return;
+    }
+    if (isIOS) {
+      setInstallHint("No Safari: toque em Compartilhar → Adicionar à Tela de Início.");
+      return;
+    }
+    // Desktop or Android without event: guide to use browser menu
+    setInstallHint("Use o menu do navegador (⋮ ou ⋯) e escolha 'Instalar app' / 'Adicionar à Tela inicial'.");
+  };
   return (
     <div className="min-h-screen bg-white text-black">
       {/* Top bar */}
@@ -183,11 +232,12 @@ const Landing = () => {
               Baixe nosso app e comece a doar ou trocar seus itens com facilidade.
             </p>
             <div className="mt-6">
-              <a href="/app.png" download>
-                <Button className="bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:opacity-90 text-white shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
-                  Download
-                </Button>
-              </a>
+              <Button onClick={handleInstallClick} className="bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:opacity-90 text-white shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+                Download
+              </Button>
+              {installHint && (
+                <p className="mt-3 text-sm text-gray-600">{installHint}</p>
+              )}
             </div>
           </div>
           <div className="order-1 md:order-2 flex justify-center">

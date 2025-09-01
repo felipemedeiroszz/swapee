@@ -3,20 +3,14 @@
   "short_name": "Swapee",
   "description": "Plataforma de troca e doação de itens usados",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#FF3B5C",
   "icons": [
-    {
-      "src": "/logoswapee.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/logoswapee.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "/logoswapee.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logoswapee.png", "sizes": "256x256", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logoswapee.png", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logoswapee.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

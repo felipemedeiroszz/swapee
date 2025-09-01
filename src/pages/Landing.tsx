@@ -3,6 +3,7 @@ import { Menu, HeartHandshake, Recycle, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const sections = [
   { id: "download", label: "Download" },
@@ -20,6 +21,9 @@ const Landing = () => {
   const [heroOffset, setHeroOffset] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [installHint, setInstallHint] = useState<string>("");
+  const [isStandalone, setIsStandalone] = useState<boolean>(false);
+  const [isIOS, setIsIOS] = useState<boolean>(false);
+  const [showIosGuide, setShowIosGuide] = useState<boolean>(false);
 
   // Smooth scroll with header offset via scroll-margin on sections
   const onNavClick = useCallback((id: string) => {
@@ -88,6 +92,15 @@ const Landing = () => {
     };
   }, []);
 
+  // Detect platform and installed state
+  useEffect(() => {
+    const ua = navigator.userAgent || (navigator as any).vendor || "";
+    const iOS = /iPad|iPhone|iPod/.test(ua) && !("MSStream" in (window as any));
+    setIsIOS(iOS);
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+    setIsStandalone(!!standalone);
+  }, []);
+
   const handleInstallClick = async () => {
     // If browser provided a deferred prompt, use it
     if (installPrompt) {
@@ -101,15 +114,13 @@ const Landing = () => {
     }
 
     // Fallbacks per platform
-    const ua = navigator.userAgent || navigator.vendor;
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !('MSStream' in window);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     if (isStandalone) {
       setInstallHint("O app já está instalado.");
       return;
     }
     if (isIOS) {
-      setInstallHint("No Safari: toque em Compartilhar → Adicionar à Tela de Início.");
+      // Show guided modal for iOS
+      setShowIosGuide(true);
       return;
     }
     // Desktop or Android without event: guide to use browser menu
@@ -221,6 +232,24 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* iOS Install Guide Modal */}
+      <Dialog open={showIosGuide} onOpenChange={setShowIosGuide}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adicionar à Tela de Início</DialogTitle>
+            <DialogDescription>
+              No Safari do iPhone/iPad:
+            </DialogDescription>
+          </DialogHeader>
+          <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700">
+            <li>Toque no ícone de Compartilhar (quadrado com seta para cima).</li>
+            <li>Role e selecione "Adicionar à Tela de Início".</li>
+            <li>Confirme tocando em "Adicionar".</li>
+          </ol>
+          <p className="mt-3 text-xs text-gray-500">Dica: se não encontrar a opção, role a folha de ações até o fim e toque em "Editar Ações" para adicioná-la.</p>
+        </DialogContent>
+      </Dialog>
+
       {/* Download (Hero-style) */}
       <section id="download" className="max-w-6xl mx-auto px-4 py-12 sm:py-16 md:py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-8 md:gap-12">
@@ -232,9 +261,13 @@ const Landing = () => {
               Baixe nosso app e comece a doar ou trocar seus itens com facilidade.
             </p>
             <div className="mt-6">
-              <Button onClick={handleInstallClick} className="bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:opacity-90 text-white shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
-                Download
-              </Button>
+              {!isStandalone ? (
+                <Button onClick={handleInstallClick} className="bg-gradient-to-r from-pink-600 to-fuchsia-500 hover:opacity-90 text-white shadow-md transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
+                  Download
+                </Button>
+              ) : (
+                <p className="text-sm text-gray-600">App instalado. Um atalho já está disponível.</p>
+              )}
               {installHint && (
                 <p className="mt-3 text-sm text-gray-600">{installHint}</p>
               )}

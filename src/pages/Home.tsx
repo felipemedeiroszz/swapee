@@ -14,6 +14,7 @@ import LanguageSelector from '@/components/LanguageSelector';
 import product1 from '@/assets/product-1.jpg';
 import product2 from '@/assets/product-2.jpg';
 import product3 from '@/assets/product-3.jpg';
+import "../styles/discover.css";
 
 // Mock data - in a real app this would come from an API
 const mockProducts = [
@@ -56,9 +57,10 @@ const Home = () => {
   const [products, setProducts] = useState(mockProducts);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filters, setFilters] = useState<FilterState>({
-    distance: 50,
-    categories: [],
-    condition: 'all'
+    distancia: 50,
+    categorias: [],
+    condicao: 'todas',
+    preco: [0, 1000],
   });
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -174,7 +176,7 @@ const Home = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <FiltersDialog onFiltersChange={handleFiltersChange} />
+          <FiltersDialog onFiltersChange={handleFiltersChange} resultCount={products.length} />
         </div>
       </div>
       
@@ -202,6 +204,28 @@ const Home = () => {
           )}
         </div>
       </main>
+
+      {/* Mobile bottom action bar */}
+      {currentProduct && (
+        <div className="mobile-bar md:hidden">
+          <div className="mobile-bar-inner">
+            <Button
+              variant="pass"
+              className="flex-1 h-12 text-base"
+              onClick={() => handleSwipeLeft(currentProduct.id)}
+            >
+              {t('pass') || 'Passar'}
+            </Button>
+            <Button
+              variant="love"
+              className="flex-1 h-12 text-base"
+              onClick={() => handleSwipeRight(currentProduct.id)}
+            >
+              {t('like') || 'Gostei'}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

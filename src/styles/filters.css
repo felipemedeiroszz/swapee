@@ -1,0 +1,93 @@
+:root{
+  --pink-50:#ffeff3;
+  --pink-100:#ffccd5;
+  --pink-400:#ff4d7c;
+  --pink-600:#d81b60;
+  --gray-200:#e5e7eb;
+  --gray-300:#d1d5db;
+  --gray-500:#6b7280;
+  --bg: hsl(var(--background, 0 0% 100%));
+  --fg: hsl(var(--foreground, 222.2 47.4% 11.2%));
+}
+
+/* Trigger button */
+.filters-trigger-btn{
+  display:inline-flex;align-items:center;border-color:var(--pink-100);
+}
+.filters-trigger-btn .filters-badge{
+  background:var(--pink-400);color:white;border-radius:999px;padding:0 8px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;
+}
+
+/* Dialog content container */
+.filters-content{
+  width:100%;max-width:720px;border:0;padding:0;overflow:hidden;
+  background:linear-gradient(180deg,var(--pink-50),#fff);
+  animation:panelIn .25s ease;
+  max-height:90vh; /* keep panel compact */
+  overflow-y:auto; /* allow internal scroll if needed */
+}
+@keyframes panelIn{from{opacity:.0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Fullscreen on mobile */
+@media (max-width: 640px){
+  .filters-content{max-height:92dvh;max-width:100%;border-radius:0;}
+}
+
+/* Header */
+.filters-content .radix-dialog-header{padding:16px 16px 8px}
+
+/* Chips */
+.filters-chips-container{display:flex;flex-wrap:wrap;gap:8px;padding:6px 12px 0}
+.chip{
+  display:inline-flex;gap:6px;align-items:center;border:1px solid var(--pink-100);
+  background:white;border-radius:999px;padding:4px 8px;font-size:11px;color:var(--fg);
+  transition:background .2s ease,border-color .2s ease;
+}
+.chip:hover{background:var(--pink-50);border-color:var(--pink-400)}
+
+/* Sections */
+.filters-section{padding:10px 14px}
+.filters-section + .filters-section{border-top:1px solid var(--gray-200)}
+.filters-section-header{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  font-weight:600;color:var(--fg);
+}
+
+/* Inputs */
+.filters-input{
+  width:100%;height:34px;border:1px solid var(--gray-300);border-radius:10px;padding:0 32px 0 32px;
+  background:white;color:var(--fg);font-size:13px;
+}
+.filters-input:focus{outline:none;border-color:var(--pink-400);box-shadow:0 0 0 3px rgba(255,77,124,.15)}
+
+/* Category card */
+.category-card{
+  display:flex;align-items:center;gap:8px;border:1px solid var(--gray-200);
+  background:white;border-radius:12px;padding:8px 10px;font-size:12px;
+  transition:transform .15s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.category-card:hover{transform:translateY(-1px)}
+.category-card.active{border-color:var(--pink-400);box-shadow:0 4px 18px rgba(216,27,96,.12);background:linear-gradient(180deg,#fff,var(--pink-50))}
+
+/* Radio card */
+.radio-card{
+  display:flex;align-items:center;gap:10px;border:1px solid var(--gray-200);
+  background:white;border-radius:12px;padding:8px 10px;font-size:13px;cursor:pointer;
+}
+.radio-card.active{border-color:var(--pink-400);box-shadow:0 4px 18px rgba(216,27,96,.12)}
+
+/* Actions */
+.filters-actions{position:sticky;bottom:0;display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--gray-200);background:linear-gradient(180deg,transparent,#fff)}
+.apply-btn{background:var(--pink-600);}
+.apply-btn:hover{background:#c21754}
+
+/* Slider overrides (shadcn) to add pink track */
+/* The exact selectors may vary per slider implementation; target CSS vars when available */
+[data-slider] .bg-primary, .bg-primary{background:var(--pink-600) !important}
+
+/* Swipe indicator (optional) */
+@media (max-width:640px){
+  .filters-content:after{
+    content:"";display:block;width:40px;height:4px;border-radius:999px;background:#e5e7eb;margin:8px auto 0;
+  }
+}

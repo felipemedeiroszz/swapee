@@ -1,0 +1,100 @@
+:root {
+  --pink-50: #ffedf1;
+  --pink-100: #ffccd5;
+  --pink-400: #ff4d7c;
+  --pink-700: #d81b60;
+  --gray-700: #2d2d2d;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Poppins');
+}
+
+.dashboard-shell {
+  font-family: 'Poppins', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji';
+  background: linear-gradient(135deg, var(--pink-50), white);
+}
+
+.dashboard-sidebar {
+  background: white;
+  border-right: 1px solid rgba(216, 27, 96, 0.12);
+}
+
+.dashboard-sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #6b7280; /* gray-500 */
+}
+
+.dashboard-sidebar .nav-item.active,
+.dashboard-sidebar .nav-item:hover {
+  background: linear-gradient(135deg, rgba(255, 204, 213, 0.6), rgba(255, 77, 124, 0.08));
+  color: var(--pink-700);
+}
+
+.metrics-card {
+  background: white;
+  border: 1px solid rgba(216, 27, 96, 0.08);
+  box-shadow: 0 8px 24px rgba(216, 27, 96, 0.08);
+  border-radius: 18px;
+}
+
+.item-card {
+  background: white;
+  border: 1px solid rgba(216, 27, 96, 0.08);
+  border-radius: 18px;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.item-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(216, 27, 96, 0.14);
+}
+
+.status-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.status-badge.pending { background: rgba(255, 204, 213, 0.6); color: var(--pink-700); }
+.status-badge.active { background: rgba(255, 77, 124, 0.12); color: var(--pink-400); }
+.status-badge.closed { background: rgba(2, 6, 23, 0.06); color: #64748b; }
+
+.carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform .25s ease;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.2);
+}
+
+.carousel-dot.active { background: var(--pink-700); }
+
+.grid-toggle button {
+  border-radius: 10px;
+}
+
+.empty-state {
+  background: linear-gradient(135deg, rgba(255, 204, 213, 0.35), rgba(255,255,255,0.9));
+  border: 1px dashed rgba(216,27,96,0.25);
+  border-radius: 16px;
+}

@@ -15,6 +15,9 @@ import EditProfile from "./pages/EditProfile";
 import MyItems from "./pages/MyItems";
 import LikedItems from "./pages/LikedItems";
 import AddItem from "./pages/AddItem";
+import Premium from "./pages/Premium";
+import Payment from "./pages/Payment";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -33,9 +36,12 @@ const App = () => (
                 <Route path="/app" element={<Index />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/perfil/editar" element={<EditProfile />} />
+                <Route path="/perfil/configuracoes" element={<Settings />} />
                 <Route path="/meus-itens" element={<MyItems />} />
                 <Route path="/itens-curtidos" element={<LikedItems />} />
                 <Route path="/adicionar-item" element={<AddItem />} />
+                <Route path="/premium" element={<Premium />} />
+                <Route path="/pagamento" element={<Payment />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

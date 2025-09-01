@@ -65,7 +65,7 @@ const Header = ({
         <div className="flex items-center space-x-1 sm:space-x-2">
           {showLanguageSelector && <LanguageSelector />}
           {onSettingsClick && (
-            <Button variant="ghost" size="icon" onClick={onSettingsClick} className="hidden sm:flex">
+            <Button variant="ghost" size="icon" onClick={onSettingsClick} className="flex">
               <Settings className="w-5 h-5" />
             </Button>
           )}

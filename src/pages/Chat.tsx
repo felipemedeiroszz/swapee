@@ -10,9 +10,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Star, Bell, BellOff, MoreVertical, Send, ShieldAlert, Eye, XCircle, MessageSquarePlus, Paperclip, Trash2, Pin, CheckCheck, Image as ImageIcon, ArrowLeft } from "lucide-react";
+import { Star, Bell, BellOff, MoreVertical, Send, ShieldAlert, Eye, XCircle, MessageSquarePlus, Paperclip, Trash2, Pin, CheckCheck, Check, Image as ImageIcon, ArrowLeft, Search } from "lucide-react";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
+import "../styles/chat.css";
 
 interface Attachment {
   url: string;
@@ -91,11 +92,22 @@ export default function Chat() {
   const [isOnline, setIsOnline] = useState(true);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
+  const [tab, setTab] = useState<'all'|'unread'|'pinned'|'muted'>('all');
 
   const active = useMemo(() => conversations.find((c) => c.id === activeId), [conversations, activeId]);
   const sortedConversations = useMemo(() => {
-    return [...conversations].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-  }, [conversations]);
+    let list = [...conversations];
+    if (tab === 'unread') list = list.filter(c => (c.unread ?? 0) > 0);
+    if (tab === 'pinned') list = list.filter(c => c.pinned);
+    if (tab === 'muted') list = list.filter(c => c.muted);
+    return list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+  }, [conversations, tab]);
+
+  const isUserOnline = (id: string) => {
+    // demo presence: alternate + global toggle for movement
+    const n = parseInt(id, 10);
+    return ((n % 2) === 1) ? isOnline : !isOnline;
+  };
 
   // Simulação de presença online dinâmica
   useEffect(() => {
@@ -177,16 +189,25 @@ export default function Chat() {
   };
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen pb-20 chat-shell">
       <Header title={t('matchesTitle') || 'Matches'} showLanguageSelector showNotifications />
 
       {/* Mobile: mostrar lista OU conversa em tela cheia */}
       <div className="pt-16 lg:hidden max-w-7xl mx-auto px-4">
         {!activeId ? (
-          <Card className="border-border/60 overflow-hidden">
-            <div className="p-3 flex items-center gap-2">
-              <Input placeholder={t('searchConversation') || 'Buscar conversa'} />
-              <Button variant="secondary" size="icon" className="shrink-0"><MessageSquarePlus className="w-4 h-4" /></Button>
+          <Card className="border-border/60 overflow-hidden bg-gradient-card">
+            <div className="p-3 flex flex-col gap-2">
+              <div className="searchbar">
+                <Search className="icon w-4 h-4" />
+                <input placeholder={"Search conversation"} aria-label={t('searchConversation') || 'Buscar conversa'} />
+                <Button variant="secondary" size="icon" className="shrink-0"><MessageSquarePlus className="w-4 h-4" /></Button>
+              </div>
+              <div className="tabbar overflow-auto">
+                <button className={`tab ${tab==='all'?'active':''}`} onClick={()=>setTab('all')}>{t('all') || 'Todas'}</button>
+                <button className={`tab ${tab==='unread'?'active':''}`} onClick={()=>setTab('unread')}>{t('unread') || 'Não lidas'}</button>
+                <button className={`tab ${tab==='pinned'?'active':''}`} onClick={()=>setTab('pinned')}>{t('pinned') || 'Fixadas'}</button>
+                <button className={`tab ${tab==='muted'?'active':''}`} onClick={()=>setTab('muted')}>{t('muted') || 'Silenciadas'}</button>
+              </div>
             </div>
             <Separator />
             <ScrollArea className="h-[calc(100vh-220px)]">
@@ -195,12 +216,15 @@ export default function Chat() {
                   <button
                     key={c.id}
                     onClick={() => setActiveId(c.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left hover:bg-muted/50`}
+                    className={`w-full chat-item ${activeId===c.id?'active':''} text-left`}
                   >
-                    <Avatar>
-                      <AvatarImage src={c.avatar} alt={c.name} />
-                      <AvatarFallback>{c.name.slice(0,2).toUpperCase()}</AvatarFallback>
-                    </Avatar>
+                    <div className="avatar-wrap">
+                      <Avatar>
+                        <AvatarImage src={c.avatar} alt={c.name} />
+                        <AvatarFallback>{c.name.slice(0,2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className={`status-dot ${isUserOnline(c.id)?'online':'offline'}`} />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-medium truncate">{c.name}</p>
@@ -216,10 +240,13 @@ export default function Chat() {
                           <Badge variant="secondary" className="ml-auto flex items-center gap-1"><BellOff className="w-3 h-3" />{t('muted') || 'Silenciado'}</Badge>
                         ) : null}
                       </div>
-                      <p className="text-sm text-muted-foreground truncate">{c.lastMessage}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="truncate flex-1">{c.lastMessage}</span>
+                        <span className="text-xs whitespace-nowrap opacity-70">{c.messages[c.messages.length-1]?.time}</span>
+                      </div>
                     </div>
                     {c.unread ? (
-                      <Badge className="ml-2">{c.unread}</Badge>
+                      <span className="unread-badge ml-2">{c.unread}</span>
                     ) : null}
                   </button>
                 ))}
@@ -227,7 +254,7 @@ export default function Chat() {
             </ScrollArea>
           </Card>
         ) : (
-          <Card className="border-border/60 overflow-hidden">
+          <Card className="border-border/60 overflow-hidden bg-gradient-card">
             <div className="flex flex-col h-[calc(100vh-160px)]">
               {/* Header chat com Voltar */}
               <div className="p-3 flex items-center justify-between border-b">
@@ -237,11 +264,17 @@ export default function Chat() {
                   </Button>
                   <Avatar>
                     <AvatarImage src={active?.avatar} alt={active?.name} />
-                    <AvatarFallback>{active?.name.slice(0,2).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{active?.name?.slice(0,2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-semibold leading-tight">{active?.name}</p>
-                    <p className="text-xs text-muted-foreground">{isTyping ? t('typing') || 'digitando...' : isOnline ? t('onlineNow') || 'Online agora' : t('offline') || 'Offline'}</p>
+                    <div className="text-xs text-muted-foreground h-4 flex items-center">
+                      {isTyping ? (
+                        <span className="typing" aria-label={t('typing') || 'digitando...'}>
+                          <span></span><span></span><span></span>
+                        </span>
+                      ) : (isOnline ? (t('onlineNow') || 'Online agora') : (t('offline') || 'Offline'))}
+                    </div>
                   </div>
                 </div>
                 <div>
@@ -355,26 +388,36 @@ export default function Chat() {
       {/* Desktop: layout em duas colunas */}
       <div className="pt-16 hidden lg:grid grid-cols-12 gap-4 max-w-7xl mx-auto px-4">
         {/* Sidebar conversas */}
-        <Card className="col-span-4 border-border/60 overflow-hidden">
-          <div className="p-3 flex items-center gap-2">
-            <Input placeholder={t('searchConversation') || 'Buscar conversa'} />
-            <Button variant="secondary" size="icon" className="shrink-0"><MessageSquarePlus className="w-4 h-4" /></Button>
+        <Card className="col-span-4 border-border/60 overflow-hidden bg-gradient-card">
+          <div className="p-3 flex flex-col gap-2">
+            <div className="searchbar">
+              <Search className="icon w-4 h-4" />
+              <input placeholder={"Search conversation"} aria-label={t('searchConversation') || 'Buscar conversa'} />
+              <Button variant="secondary" size="icon" className="shrink-0"><MessageSquarePlus className="w-4 h-4" /></Button>
+            </div>
+            <div className="tabbar">
+              <button className={`tab ${tab==='all'?'active':''}`} onClick={()=>setTab('all')}>{t('all') || 'Todas'}</button>
+              <button className={`tab ${tab==='unread'?'active':''}`} onClick={()=>setTab('unread')}>{t('unread') || 'Não lidas'}</button>
+              <button className={`tab ${tab==='pinned'?'active':''}`} onClick={()=>setTab('pinned')}>{t('pinned') || 'Fixadas'}</button>
+              <button className={`tab ${tab==='muted'?'active':''}`} onClick={()=>setTab('muted')}>{t('muted') || 'Silenciadas'}</button>
+            </div>
           </div>
           <Separator />
-          <ScrollArea className="h-[calc(100vh-220px)]">
+          <ScrollArea className="h-[calc(100vh-220px)] lg:h-[calc(100vh-220px)]">
             <div className="p-2 space-y-1">
               {sortedConversations.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setActiveId(c.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors text-left ${
-                    activeId === c.id ? "bg-accent" : "hover:bg-muted/50"
-                  }`}
+                  className={`w-full chat-item ${activeId===c.id?'active':''} text-left`}
                 >
-                  <Avatar>
-                    <AvatarImage src={c.avatar} alt={c.name} />
-                    <AvatarFallback>{c.name.slice(0,2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
+                  <div className="avatar-wrap">
+                    <Avatar>
+                      <AvatarImage src={c.avatar} alt={c.name} />
+                      <AvatarFallback>{c.name.slice(0,2).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <span className={`status-dot ${isUserOnline(c.id)?'online':'offline'}`} />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium truncate">{c.name}</p>
@@ -390,10 +433,13 @@ export default function Chat() {
                         <Badge variant="secondary" className="ml-auto flex items-center gap-1"><BellOff className="w-3 h-3" />{t('muted') || 'Silenciado'}</Badge>
                       ) : null}
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">{c.lastMessage}</p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span className="truncate flex-1">{c.lastMessage}</span>
+                      <span className="text-xs whitespace-nowrap opacity-70">{c.messages[c.messages.length-1]?.time}</span>
+                    </div>
                   </div>
                   {c.unread ? (
-                    <Badge className="ml-2">{c.unread}</Badge>
+                    <span className="unread-badge ml-2">{c.unread}</span>
                   ) : null}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -482,11 +528,11 @@ export default function Chat() {
               {/* Mensagens */}
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-3">
-                  {active.messages.map((m) => (
+                  {active.messages.map((m, idx) => {
+                    const isLast = idx === active.messages.length - 1;
+                    return (
                     <div key={m.id} className={`flex ${m.fromMe ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                        m.fromMe ? "bg-gradient-primary text-white" : "bg-muted"
-                      }`}>
+                      <div className={`msg ${m.fromMe ? 'me' : 'other'} text-sm`}>
                         {m.text && <p>{m.text}</p>}
                         {m.attachments && (
                           <div className="mt-2 grid grid-cols-2 gap-2">
@@ -507,10 +553,18 @@ export default function Chat() {
                             ))}
                           </div>
                         )}
-                        <p className={`text-[10px] mt-1 ${m.fromMe ? "text-white/80" : "text-muted-foreground"}`}>{m.time}</p>
+                        <div className={`msg-meta ${m.fromMe ? "text-white/80" : "text-muted-foreground"}`}>
+                          <span>{m.time}</span>
+                          {m.fromMe && (
+                            <span className={`msg-status ${isLast ? 'read' : ''}`}>
+                              {isLast ? <CheckCheck className="w-3 h-3" /> : <Check className="w-3 h-3" />}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
 

@@ -8,7 +8,6 @@ import { NotificationsProvider } from "@/contexts/NotificationsContext";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Index from "./pages/Index";
-import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
@@ -30,7 +29,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Signup />} />
                 <Route path="/app" element={<Index />} />

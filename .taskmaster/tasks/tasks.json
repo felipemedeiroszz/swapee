@@ -1,0 +1,456 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "SWP-001",
+        "title": "Setup Base - Autenticação e Segurança",
+        "description": "Implementar sistema completo de autenticação com login/cadastro, verificação por email, recuperação de senha e integração com provedores sociais (Google, Facebook). Inclui middleware de autenticação, JWT tokens e guards de segurança.",
+        "status": "pending",
+        "priority": "high",
+        "category": "backend",
+        "tags": [
+          "auth",
+          "security",
+          "jwt"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-002",
+        "title": "Sistema de Gerenciamento de Usuários",
+        "description": "CRUD completo de usuários com perfil editável, upload de foto de perfil, configurações de privacidade, sistema de reputação e badges. Inclui validações, sanitização e otimização de imagens.",
+        "status": "pending",
+        "priority": "high",
+        "category": "backend",
+        "tags": [
+          "users",
+          "profile",
+          "upload"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-001"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-003",
+        "title": "Sistema de Produtos e Categorias",
+        "description": "CRUD de produtos com múltiplas imagens, categorização, geolocalização, status e validações. Sistema de categorias hierárquico, upload otimizado de imagens e indexação para busca eficiente.",
+        "status": "pending",
+        "priority": "high",
+        "category": "backend",
+        "tags": [
+          "products",
+          "categories",
+          "images"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-002"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-004",
+        "title": "Sistema de Descoberta e Matching",
+        "description": "Algoritmo de descoberta de produtos baseado em localização e preferências. Sistema de swipe (like/dislike), matches bidirecionais, filtros avançados e recomendações personalizadas.",
+        "status": "pending",
+        "priority": "high",
+        "category": "backend",
+        "tags": [
+          "matching",
+          "algorithm",
+          "geolocation"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-003"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-005",
+        "title": "Sistema de Chat em Tempo Real",
+        "description": "Chat em tempo real usando WebSockets, suporte a mensagens de texto e imagens, status de entrega/leitura, histórico de conversas e notificações push integradas.",
+        "status": "pending",
+        "priority": "high",
+        "category": "backend",
+        "tags": [
+          "chat",
+          "websockets",
+          "realtime"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-004"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-006",
+        "title": "Sistema de Trocas e Negociação",
+        "description": "Fluxo completo de trocas: propostas, negociação, confirmação bilateral, tracking de status e avaliações pós-troca. Inclui sistema de reputação e histórico detalhado.",
+        "status": "pending",
+        "priority": "high",
+        "category": "backend",
+        "tags": [
+          "trades",
+          "negotiation",
+          "reputation"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-005"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-007",
+        "title": "Sistema de Busca e Filtros",
+        "description": "Busca textual avançada com ElasticSearch ou PostgreSQL Full Text Search, filtros por categoria/localização/preço, ordenação inteligente e indexação otimizada para performance.",
+        "status": "pending",
+        "priority": "medium",
+        "category": "backend",
+        "tags": [
+          "search",
+          "filters",
+          "indexing"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-003"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-008",
+        "title": "Sistema Premium e Pagamentos",
+        "description": "Planos de assinatura premium com funcionalidades exclusivas, integração com Stripe/PayPal, gerenciamento de billing, renovação automática e controle de acesso baseado em plano.",
+        "status": "pending",
+        "priority": "medium",
+        "category": "backend",
+        "tags": [
+          "premium",
+          "payments",
+          "billing"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-002"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-009",
+        "title": "Sistema de Notificações",
+        "description": "Push notifications, notificações email, configurações granulares por usuário, templates personalizáveis e integração com provedores de notificação (FCM, SendGrid).",
+        "status": "pending",
+        "priority": "medium",
+        "category": "backend",
+        "tags": [
+          "notifications",
+          "push",
+          "email"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-002"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-010",
+        "title": "API Documentation e Testes",
+        "description": "Documentação completa da API com Swagger, testes unitários e de integração, setup de CI/CD, monitoramento e logging estruturado para produção.",
+        "status": "pending",
+        "priority": "medium",
+        "category": "backend",
+        "tags": [
+          "docs",
+          "testing",
+          "cicd"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-001"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-011",
+        "title": "Web - Setup Base e Estrutura",
+        "description": "Configuração inicial do projeto React web: estrutura de pastas, roteamento, state management, temas (dark/light), internacionalização e componentes base do design system.",
+        "status": "pending",
+        "priority": "high",
+        "category": "web",
+        "tags": [
+          "setup",
+          "routing",
+          "theming"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-012",
+        "title": "Web - Autenticação e Onboarding",
+        "description": "Páginas de login/cadastro responsivas, integração com API de auth, onboarding interativo para novos usuários, recuperação de senha e validações de formulário.",
+        "status": "pending",
+        "priority": "high",
+        "category": "web",
+        "tags": [
+          "auth",
+          "forms",
+          "onboarding"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-011",
+          "SWP-001"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-013",
+        "title": "Web - Sistema de Descoberta (Home)",
+        "description": "Página principal com cards swipeáveis tipo Tinder, animações fluidas, sistema de filtros, integração com API de matching e interface responsiva para diferentes dispositivos.",
+        "status": "pending",
+        "priority": "high",
+        "category": "web",
+        "tags": [
+          "swipe",
+          "cards",
+          "animations"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-012",
+          "SWP-004"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-014",
+        "title": "Web - Gerenciamento de Produtos",
+        "description": "Páginas para adicionar/editar produtos com upload múltiplo de imagens, formulários dinâmicos, preview em tempo real, validações client-side e integração com API.",
+        "status": "pending",
+        "priority": "high",
+        "category": "web",
+        "tags": [
+          "products",
+          "forms",
+          "upload"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-012",
+          "SWP-003"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-015",
+        "title": "Web - Perfil e Configurações",
+        "description": "Páginas de perfil do usuário, edição de dados pessoais, configurações de privacidade e notificações, tema e idioma, histórico de atividades e estatísticas.",
+        "status": "pending",
+        "priority": "medium",
+        "category": "web",
+        "tags": [
+          "profile",
+          "settings",
+          "privacy"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-012",
+          "SWP-002"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-016",
+        "title": "Web - Sistema de Chat",
+        "description": "Interface de chat em tempo real, lista de conversas, envio de mensagens e imagens, status de entrega/leitura, notificações e design responsivo para mobile/desktop.",
+        "status": "pending",
+        "priority": "high",
+        "category": "web",
+        "tags": [
+          "chat",
+          "realtime",
+          "websockets"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-013",
+          "SWP-005"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-017",
+        "title": "Web - Sistema de Busca e Filtros",
+        "description": "Página de busca avançada com filtros inteligentes, ordenação, resultados paginados, histórico de buscas, favoritos e interface intuitiva para mobile e desktop.",
+        "status": "pending",
+        "priority": "medium",
+        "category": "web",
+        "tags": [
+          "search",
+          "filters",
+          "pagination"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [
+          "SWP-012",
+          "SWP-007"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-018",
+        "title": "Web - Sistema Premium e Pagamentos",
+        "description": "Páginas de planos premium, checkout seguro com Stripe, gerenciamento de assinatura, upgrade/downgrade de planos e dashboard para usuários premium.",
+        "status": "pending",
+        "priority": "medium",
+        "category": "web",
+        "tags": [
+          "premium",
+          "payments",
+          "checkout"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-015",
+          "SWP-008"
+        ],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-019",
+        "title": "App Mobile - Setup e Estrutura Base",
+        "description": "Setup inicial do React Native/Expo, navegação, state management, componentes base, temas, configurações de build para iOS/Android e estrutura de pastas.",
+        "status": "pending",
+        "priority": "high",
+        "category": "mobile",
+        "tags": [
+          "setup",
+          "navigation",
+          "expo"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "medium",
+        "dependencies": [],
+        "subtasks": []
+      },
+      {
+        "id": "SWP-020",
+        "title": "App Mobile - Replicação de Features Web",
+        "description": "Adaptar todas as funcionalidades da web para mobile: autenticação, descoberta, perfil, chat, produtos, busca e pagamentos. Incluir features nativas como câmera, localização e push notifications.",
+        "status": "pending",
+        "priority": "high",
+        "category": "mobile",
+        "tags": [
+          "features",
+          "native",
+          "adaptation"
+        ],
+        "assignee": null,
+        "dueDate": null,
+        "createdAt": "2025-09-05T22:15:00Z",
+        "updatedAt": "2025-09-05T22:15:00Z",
+        "complexity": "high",
+        "dependencies": [
+          "SWP-019",
+          "SWP-018"
+        ],
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "version": "1.0.0",
+      "createdAt": "2025-09-05T22:15:00Z",
+      "updatedAt": "2025-09-05T22:15:00Z",
+      "totalTasks": 20,
+      "project": "Swepee",
+      "description": "Plataforma de troca de produtos tipo Tinder"
+    }
+  }
+}

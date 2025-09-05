@@ -1,0 +1,11 @@
+# Task ID: SWP-003
+# Title: Sistema de Produtos e Categorias
+# Status: pending
+# Dependencies: SWP-002 (Not found)
+# Priority: high
+# Description: CRUD de produtos com múltiplas imagens, categorização, geolocalização, status e validações. Sistema de categorias hierárquico, upload otimizado de imagens e indexação para busca eficiente.
+# Details:
+
+
+# Test Strategy:
+

@@ -1,0 +1,11 @@
+# Task ID: SWP-011
+# Title: Web - Setup Base e Estrutura
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Configuração inicial do projeto React web: estrutura de pastas, roteamento, state management, temas (dark/light), internacionalização e componentes base do design system.
+# Details:
+
+
+# Test Strategy:
+

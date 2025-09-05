@@ -1,0 +1,11 @@
+# Task ID: SWP-016
+# Title: Web - Sistema de Chat
+# Status: pending
+# Dependencies: SWP-013 (Not found), SWP-005 (Not found)
+# Priority: high
+# Description: Interface de chat em tempo real, lista de conversas, envio de mensagens e imagens, status de entrega/leitura, notificações e design responsivo para mobile/desktop.
+# Details:
+
+
+# Test Strategy:
+

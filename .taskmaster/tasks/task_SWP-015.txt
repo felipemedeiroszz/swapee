@@ -1,0 +1,11 @@
+# Task ID: SWP-015
+# Title: Web - Perfil e Configurações
+# Status: pending
+# Dependencies: SWP-012 (Not found), SWP-002 (Not found)
+# Priority: medium
+# Description: Páginas de perfil do usuário, edição de dados pessoais, configurações de privacidade e notificações, tema e idioma, histórico de atividades e estatísticas.
+# Details:
+
+
+# Test Strategy:
+

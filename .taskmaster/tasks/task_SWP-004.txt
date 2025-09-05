@@ -1,0 +1,11 @@
+# Task ID: SWP-004
+# Title: Sistema de Descoberta e Matching
+# Status: pending
+# Dependencies: SWP-003 (Not found)
+# Priority: high
+# Description: Algoritmo de descoberta de produtos baseado em localização e preferências. Sistema de swipe (like/dislike), matches bidirecionais, filtros avançados e recomendações personalizadas.
+# Details:
+
+
+# Test Strategy:
+

@@ -1,0 +1,11 @@
+# Task ID: SWP-014
+# Title: Web - Gerenciamento de Produtos
+# Status: pending
+# Dependencies: SWP-012 (Not found), SWP-003 (Not found)
+# Priority: high
+# Description: Páginas para adicionar/editar produtos com upload múltiplo de imagens, formulários dinâmicos, preview em tempo real, validações client-side e integração com API.
+# Details:
+
+
+# Test Strategy:
+

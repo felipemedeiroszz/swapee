@@ -1,0 +1,11 @@
+# Task ID: SWP-019
+# Title: App Mobile - Setup e Estrutura Base
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Setup inicial do React Native/Expo, navegação, state management, componentes base, temas, configurações de build para iOS/Android e estrutura de pastas.
+# Details:
+
+
+# Test Strategy:
+

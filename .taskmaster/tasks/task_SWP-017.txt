@@ -1,0 +1,11 @@
+# Task ID: SWP-017
+# Title: Web - Sistema de Busca e Filtros
+# Status: pending
+# Dependencies: SWP-012 (Not found), SWP-007 (Not found)
+# Priority: medium
+# Description: Página de busca avançada com filtros inteligentes, ordenação, resultados paginados, histórico de buscas, favoritos e interface intuitiva para mobile e desktop.
+# Details:
+
+
+# Test Strategy:
+

@@ -1,0 +1,11 @@
+# Task ID: SWP-013
+# Title: Web - Sistema de Descoberta (Home)
+# Status: pending
+# Dependencies: SWP-012 (Not found), SWP-004 (Not found)
+# Priority: high
+# Description: Página principal com cards swipeáveis tipo Tinder, animações fluidas, sistema de filtros, integração com API de matching e interface responsiva para diferentes dispositivos.
+# Details:
+
+
+# Test Strategy:
+

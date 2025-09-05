@@ -1,0 +1,11 @@
+# Task ID: SWP-007
+# Title: Sistema de Busca e Filtros
+# Status: pending
+# Dependencies: SWP-003 (Not found)
+# Priority: medium
+# Description: Busca textual avançada com ElasticSearch ou PostgreSQL Full Text Search, filtros por categoria/localização/preço, ordenação inteligente e indexação otimizada para performance.
+# Details:
+
+
+# Test Strategy:
+

@@ -1,0 +1,11 @@
+# Task ID: SWP-002
+# Title: Sistema de Gerenciamento de Usuários
+# Status: pending
+# Dependencies: SWP-001 (Not found)
+# Priority: high
+# Description: CRUD completo de usuários com perfil editável, upload de foto de perfil, configurações de privacidade, sistema de reputação e badges. Inclui validações, sanitização e otimização de imagens.
+# Details:
+
+
+# Test Strategy:
+

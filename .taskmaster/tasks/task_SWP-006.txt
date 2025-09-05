@@ -1,0 +1,11 @@
+# Task ID: SWP-006
+# Title: Sistema de Trocas e Negociação
+# Status: pending
+# Dependencies: SWP-005 (Not found)
+# Priority: high
+# Description: Fluxo completo de trocas: propostas, negociação, confirmação bilateral, tracking de status e avaliações pós-troca. Inclui sistema de reputação e histórico detalhado.
+# Details:
+
+
+# Test Strategy:
+

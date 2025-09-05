@@ -1,0 +1,11 @@
+# Task ID: SWP-005
+# Title: Sistema de Chat em Tempo Real
+# Status: pending
+# Dependencies: SWP-004 (Not found)
+# Priority: high
+# Description: Chat em tempo real usando WebSockets, suporte a mensagens de texto e imagens, status de entrega/leitura, histórico de conversas e notificações push integradas.
+# Details:
+
+
+# Test Strategy:
+

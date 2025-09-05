@@ -1,0 +1,11 @@
+# Task ID: SWP-020
+# Title: App Mobile - Replicação de Features Web
+# Status: pending
+# Dependencies: SWP-019 (Not found), SWP-018 (Not found)
+# Priority: high
+# Description: Adaptar todas as funcionalidades da web para mobile: autenticação, descoberta, perfil, chat, produtos, busca e pagamentos. Incluir features nativas como câmera, localização e push notifications.
+# Details:
+
+
+# Test Strategy:
+

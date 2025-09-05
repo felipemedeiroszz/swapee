@@ -1,0 +1,11 @@
+# Task ID: SWP-001
+# Title: Setup Base - Autenticação e Segurança
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Implementar sistema completo de autenticação com login/cadastro, verificação por email, recuperação de senha e integração com provedores sociais (Google, Facebook). Inclui middleware de autenticação, JWT tokens e guards de segurança.
+# Details:
+
+
+# Test Strategy:
+

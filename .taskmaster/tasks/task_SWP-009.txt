@@ -1,0 +1,11 @@
+# Task ID: SWP-009
+# Title: Sistema de Notificações
+# Status: pending
+# Dependencies: SWP-002 (Not found)
+# Priority: medium
+# Description: Push notifications, notificações email, configurações granulares por usuário, templates personalizáveis e integração com provedores de notificação (FCM, SendGrid).
+# Details:
+
+
+# Test Strategy:
+

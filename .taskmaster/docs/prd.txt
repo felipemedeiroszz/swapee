@@ -1,0 +1,171 @@
+# Swepee - Product Requirements Document
+
+## Overview
+Swepee é uma plataforma de troca de produtos baseada em localização, similar ao Tinder mas para itens. Os usuários podem fazer swipe em produtos próximos, dar match, negociar e realizar trocas de forma segura.
+
+## Project Structure
+- **Web**: React + Vite + TypeScript + Tailwind CSS + shadcn/ui
+- **Backend**: NestJS + TypeScript + PostgreSQL + Prisma
+- **Mobile**: React Native + Expo + TypeScript
+
+## Core Features
+
+### 1. Autenticação e Onboarding
+- Login/Cadastro com email e senha
+- Login social (Google, Facebook)
+- Verificação por email/SMS
+- Onboarding interativo para novos usuários
+- Perfil inicial com foto, localização e preferências
+
+### 2. Sistema de Descoberta (Home)
+- Página principal com cards swipeáveis tipo Tinder
+- Swipe left (não interessado) / right (interessado)
+- Super likes para produtos premium
+- Filtros avançados:
+  - Categoria de produtos
+  - Raio de distância
+  - Estado do produto (novo, seminovo, usado)
+  - Tipo (troca, venda, doação)
+- Sistema de match quando ambos demonstram interesse
+
+### 3. Gerenciamento de Produtos
+- Adicionar novos produtos com:
+  - Múltiplas fotos (até 6 imagens)
+  - Título e descrição detalhada
+  - Categoria e subcategoria
+  - Estado do produto
+  - Valor estimado (opcional)
+  - Localização
+- Editar produtos existentes
+- Remover produtos
+- Status dos produtos (ativo, trocado, removido)
+- Galeria de produtos do usuário
+
+### 4. Sistema de Trocas
+- Proposta de troca entre usuários
+- Negociação via chat integrado
+- Sistema de ofertas e contra-ofertas
+- Confirmação de troca bilateral
+- Avaliação pós-troca
+- Sistema de reputação baseado em avaliações
+- Histórico completo de trocas
+
+### 5. Chat em Tempo Real
+- Chat individual entre usuários interessados
+- Envio de mensagens de texto
+- Compartilhamento de imagens
+- Status de mensagem (enviada, entregue, lida)
+- Histórico de conversas
+- Notificações em tempo real
+- Chat durante negociação de troca
+
+### 6. Perfil de Usuário
+- Perfil completo editável:
+  - Foto de perfil
+  - Nome e bio
+  - Localização
+  - Preferências de troca
+- Histórico de trocas realizadas
+- Avaliações recebidas
+- Sistema de badges/conquistas
+- Configurações de privacidade
+- Produtos favoritos/salvos
+
+### 7. Busca e Filtros
+- Busca textual por produtos
+- Filtros avançados:
+  - Categoria
+  - Localização/raio
+  - Preço estimado
+  - Estado do produto
+  - Data de publicação
+- Ordenação por relevância, distância, data
+- Favoritar produtos para visualizar depois
+- Histórico de buscas
+
+### 8. Sistema Premium
+- Planos de assinatura:
+  - Básico (gratuito): funcionalidades limitadas
+  - Premium: recursos avançados
+- Funcionalidades Premium:
+  - Super likes ilimitados
+  - Visibilidade aumentada
+  - Filtros avançados exclusivos
+  - Estatísticas detalhadas
+  - Suporte prioritário
+- Integração com Stripe/PayPal para pagamentos
+
+### 9. Notificações
+- Push notifications para:
+  - Novos matches
+  - Mensagens recebidas
+  - Propostas de troca
+  - Lembretes
+- Notificações por email
+- Configurações granulares de notificações
+
+### 10. Configurações e Preferências
+- Tema claro/escuro
+- Idioma (português, inglês)
+- Configurações de privacidade
+- Raio de busca padrão
+- Categorias de interesse
+- Notificações personalizadas
+- Configurações de conta
+
+## Páginas da Aplicação Web
+
+### Principais
+- **Login/Signup**: Autenticação completa
+- **Home**: Descoberta com swipe cards
+- **Profile**: Perfil do usuário
+- **AddItem**: Adicionar novo produto
+- **MyItems**: Produtos do usuário
+- **LikedItems**: Produtos curtidos
+- **Search**: Busca avançada
+- **Chat**: Sistema de mensagens
+- **Settings**: Configurações gerais
+- **Premium**: Planos premium
+- **Payment**: Processamento de pagamentos
+
+### Secundárias
+- **EditProfile**: Edição de perfil
+- **NotFound**: Página 404
+- **Landing**: Página inicial para não logados
+
+## Tecnologias e Integrações
+
+### Frontend (Web & Mobile)
+- React/React Native + TypeScript
+- Estado global com Context API ou Zustand
+- UI consistente entre web e mobile
+- Responsivo e acessível
+
+### Backend
+- NestJS com arquitetura modular
+- PostgreSQL com Prisma ORM
+- WebSockets para chat tempo real
+- Sistema de upload de imagens
+- API RESTful bem documentada
+
+### Integrações Externas
+- Mapas e geolocalização
+- Processamento de pagamentos
+- Notificações push
+- Upload e otimização de imagens
+- Analytics e métricas
+
+## Success Metrics
+- Número de usuários ativos
+- Taxa de matches bem-sucedidos
+- Número de trocas realizadas
+- Tempo médio na plataforma
+- Taxa de retenção de usuários
+- Receita de assinantes premium
+
+## Roadmap
+1. **Fase 1**: Autenticação, perfil e descoberta básica
+2. **Fase 2**: Sistema de matches e chat
+3. **Fase 3**: Processo completo de trocas
+4. **Fase 4**: Funcionalidades premium e monetização
+5. **Fase 5**: Features avançadas e gamificação

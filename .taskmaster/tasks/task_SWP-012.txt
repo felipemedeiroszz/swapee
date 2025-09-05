@@ -1,0 +1,11 @@
+# Task ID: SWP-012
+# Title: Web - Autenticação e Onboarding
+# Status: pending
+# Dependencies: SWP-011 (Not found), SWP-001 (Not found)
+# Priority: high
+# Description: Páginas de login/cadastro responsivas, integração com API de auth, onboarding interativo para novos usuários, recuperação de senha e validações de formulário.
+# Details:
+
+
+# Test Strategy:
+

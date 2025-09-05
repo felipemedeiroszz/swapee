@@ -1,0 +1,11 @@
+# Task ID: SWP-018
+# Title: Web - Sistema Premium e Pagamentos
+# Status: pending
+# Dependencies: SWP-015 (Not found), SWP-008 (Not found)
+# Priority: medium
+# Description: Páginas de planos premium, checkout seguro com Stripe, gerenciamento de assinatura, upgrade/downgrade de planos e dashboard para usuários premium.
+# Details:
+
+
+# Test Strategy:
+

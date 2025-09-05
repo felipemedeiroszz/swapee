@@ -1,73 +1,123 @@
-# Welcome to your Lovable project
+# Swepee - Monorepo
 
-## Project info
+Swepee é uma plataforma de troca de produtos baseada em localização, similar ao Tinder mas para itens. O projeto está estruturado como um monorepo com três aplicações principais.
 
-**URL**: https://lovable.dev/projects/78e90281-5267-4900-ad97-f53d2f70e199
+## 📁 Estrutura do Projeto
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/78e90281-5267-4900-ad97-f53d2f70e199) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+swepee/
+├── web/                    # Frontend Web (React + Vite + TypeScript)
+├── backend/                # API Backend (NestJS + TypeScript)
+├── app/                    # Mobile App (React Native + Expo)
+├── package.json           # Configuração do workspace
+└── README.md
 ```
 
-**Edit a file directly in GitHub**
+## 🚀 Como Executar
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Pré-requisitos
+- Node.js >= 18.0.0
+- npm ou yarn
+- Expo CLI (para o app mobile)
 
-**Use GitHub Codespaces**
+### Instalação
+```bash
+# Instalar dependências de todos os projetos
+npm run install:all
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+# Ou instalar individualmente
+npm install                    # Workspace raiz
+cd web && npm install          # Frontend web
+cd backend && npm install      # Backend API
+cd app && npm install          # Mobile app
+```
 
-## What technologies are used for this project?
+### Desenvolvimento
+```bash
+# Executar todos os serviços simultaneamente
+npm run dev
 
-This project is built with:
+# Ou executar individualmente
+npm run web:dev              # Frontend web (http://localhost:5173)
+npm run backend:dev          # Backend API (http://localhost:3000)
+npm run app:start            # Mobile app (Expo DevTools)
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 📱 Aplicações
 
-## How can I deploy this project?
+### Web (`/web`)
+- **Framework**: React 18 + Vite + TypeScript
+- **UI**: Tailwind CSS + shadcn/ui
+- **Features**: Interface web responsiva para desktop/tablet
 
-Simply open [Lovable](https://lovable.dev/projects/78e90281-5267-4900-ad97-f53d2f70e199) and click on Share -> Publish.
+### Backend (`/backend`)
+- **Framework**: NestJS + TypeScript
+- **Database**: PostgreSQL com Prisma ORM
+- **Auth**: JWT + Passport
+- **Features**: API RESTful, WebSockets, Upload de arquivos
 
-## Can I connect a custom domain to my Lovable project?
+### App (`/app`)
+- **Framework**: React Native + Expo
+- **Navigation**: React Navigation
+- **State**: Zustand / Context API
+- **Features**: Swipe cards, Chat real-time, Geolocalização
 
-Yes, you can!
+## 🛠 Scripts Disponíveis
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Web
+- `npm run web:dev` - Servidor de desenvolvimento
+- `npm run web:build` - Build para produção
+- `npm run web:preview` - Preview do build
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Backend
+- `npm run backend:dev` - Servidor de desenvolvimento
+- `npm run backend:build` - Build para produção
+- `npm run backend:start` - Iniciar servidor
+- `npm run backend:test` - Executar testes
+
+### App
+- `npm run app:start` - Iniciar Expo DevTools
+- `npm run app:android` - Executar no Android
+- `npm run app:ios` - Executar no iOS
+- `npm run app:web` - Executar na web
+
+### Utilitários
+- `npm run clean` - Limpar node_modules de todos os projetos
+- `npm run lint:all` - Executar linting em todos os projetos
+- `npm run test:all` - Executar todos os testes
+
+## 📋 Roadmap de Desenvolvimento
+
+### Backend (NestJS)
+- [ ] Setup core (Database, Auth, Validation, Swagger)
+- [ ] Módulos base (Users, Auth, Products, Categories, Trades, Chat, Notifications)
+- [ ] Features core (Autenticação, CRUD usuários, upload imagens, sistema de troca)
+- [ ] Database layer (Prisma, migrations, seeds, relacionamentos)
+- [ ] Real-time features (WebSockets para chat e notificações)
+
+### Mobile App (React Native)
+- [ ] Setup base (Navegação, state management, theming)
+- [ ] Telas principais (Login, Registro, Home swipe, Perfil, Chat, Configurações)
+- [ ] Features nativas (Câmera, galeria, geolocalização, push notifications)
+- [ ] Core features (Sistema de swipe, match system, chat tempo real)
+- [ ] API integration (Client HTTP, interceptors, error handling, cache)
+
+## 🔧 Tecnologias
+
+- **Frontend**: React, TypeScript, Vite, Tailwind CSS
+- **Backend**: NestJS, TypeScript, Prisma, PostgreSQL
+- **Mobile**: React Native, Expo, TypeScript
+- **DevOps**: Concurrently, ESLint, Prettier
+
+## 📝 Próximos Passos
+
+1. Configurar database e autenticação no backend
+2. Criar módulos base da API
+3. Implementar telas principais do app mobile
+4. Integrar backend com frontend
+5. Implementar features de tempo real
+6. Testes e deploy
+
+---
+
+**Equipe Swepee** 🚀

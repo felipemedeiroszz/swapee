@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import '../styles/search.css';
 
@@ -23,6 +25,8 @@ const Search = () => {
   const [condition, setCondition] = useState<'novo'|'seminovo'|'usado'|'any'>('any');
   const [loading, setLoading] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const navigate = useNavigate();
 
   const categories = [
     { id: 'all', label: 'Todos', icon: Layers, count: 128 },
@@ -75,7 +79,9 @@ const Search = () => {
 
   const searchResults = useMemo(() => {
     // Filter by category and simple flags
-    let r = allResults.filter(r => selectedCategory === 'all' || r.title.toLowerCase().includes(selectedCategory));
+    let r = allResults
+      .filter(r => r.type === 'Doação')
+      .filter(r => selectedCategory === 'all' || r.title.toLowerCase().includes(selectedCategory));
     if (onlyTrade) r = r.filter(r => r.type === 'Troca');
     // Price range (mock): include all where price within range
     r = r.filter(r => r.price >= priceRange[0] && r.price <= priceRange[1]);
@@ -96,7 +102,7 @@ const Search = () => {
 
   return (
     <div className="min-h-screen search-shell bg-gradient-to-br from-[var(--pink-100)]/40 via-white to-[var(--pink-100)]/30">
-      <Header title="Buscar" showNotifications />
+      <Header title="Doação" showNotifications />
 
       <main className="pt-20 pb-24 px-4 max-w-7xl mx-auto">
         {/* Breadcrumbs */}
@@ -296,14 +302,14 @@ const Search = () => {
             ) : (
               <div className={view==='grid' ? 'grid grid-cols-1 sm:grid-cols-2 gap-3' : 'space-y-3'}>
                 {searchResults.map((item) => (
-                  <Card key={item.id} className={`product-card ${view==='list' ? 'flex' : ''}`}>
+                  <Card key={item.id} className={`product-card ${view==='list' ? 'flex' : ''} cursor-pointer`} onClick={() => setSelectedItem(item)}>
                     <div className={view==='list' ? 'w-40 aspect-square relative' : 'aspect-square relative'}>
                       <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                       <div className="badge">
                         <Badge variant={item.type === 'Doação' ? 'secondary' : 'default'} className="text-xs">{item.type}</Badge>
                       </div>
                       <div className="quick-view">
-                        <Button size="sm" variant="secondary"><Eye className="w-4 h-4 mr-1"/>Visualizar</Button>
+                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}><Eye className="w-4 h-4 mr-1"/>Visualizar</Button>
                         <Button size="sm" variant="default" className="bg-[var(--pink-600)] hover:bg-[var(--pink-800)]"><Heart className="w-4 h-4 mr-1"/>Salvar</Button>
                       </div>
                     </div>
@@ -329,9 +335,34 @@ const Search = () => {
           </div>
         </div>
       </main>
+
+      {/* Product Detail Dialog */}
+      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedItem?.title}</DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <div className="space-y-3">
+              <div className="aspect-square w-full overflow-hidden rounded-md">
+                <img src={selectedItem.image} alt={selectedItem.title} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="w-4 h-4" />
+                <span>{selectedItem.location}</span>
+                <span>•</span>
+                <span>{selectedItem.distance}</span>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button className="bg-[var(--pink-600)] hover:bg-[var(--pink-800)]" onClick={() => { localStorage.setItem('swapee-default-conv-type','Doação'); localStorage.setItem('swapee-lock-type','1'); navigate('/chat'); }}>Enviar mensagem</Button>
+                <Button variant="outline" onClick={() => setSelectedItem(null)}>Fechar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-
 };
 
 export default Search;

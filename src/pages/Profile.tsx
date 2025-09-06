@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit3, MapPin, Heart, Package, MessageCircle, Settings, Crown, Stars } from 'lucide-react';
+import { Edit3, MapPin, Heart, Package, Coins, Crown, Stars, Star } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
@@ -21,7 +22,30 @@ const Profile = () => {
     }
   });
 
-  
+  // Coins (pontuação) and dynamic donations from localStorage
+  const [coins, setCoins] = useState<number>(0);
+  const [donations, setDonations] = useState<number>(user.stats.donations);
+  const [avgRating, setAvgRating] = useState<number>(0);
+  const [totalRatings, setTotalRatings] = useState<number>(0);
+
+  useEffect(() => {
+    const storedCoins = parseInt(localStorage.getItem('swapee-coins') || '0', 10);
+    const storedDonations = parseInt(localStorage.getItem('swapee-donations') || String(user.stats.donations), 10);
+    setCoins(isNaN(storedCoins) ? 0 : storedCoins);
+    setDonations(isNaN(storedDonations) ? user.stats.donations : storedDonations);
+    // Load ratings average for this user
+    try {
+      const raw = localStorage.getItem('swapee-user-ratings') || '{}';
+      const data = JSON.parse(raw);
+      const list: number[] = Array.isArray(data[user.name]) ? data[user.name] : [];
+      const avg = list.length ? (list.reduce((a, b) => a + b, 0) / list.length) : 0;
+      setAvgRating(avg);
+      setTotalRatings(list.length);
+    } catch {
+      setAvgRating(0);
+      setTotalRatings(0);
+    }
+  }, [user.stats.donations]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-accent via-background to-accent/50">
@@ -53,6 +77,15 @@ const Profile = () => {
                   <MapPin className="w-4 h-4" />
                   <span>{user.location}</span>
                 </div>
+                {/* Average rating */}
+                <div className="mt-1 flex items-center gap-1.5">
+                  {[1,2,3,4,5].map((n) => (
+                    <Star key={n} className={`w-4 h-4 ${avgRating >= n ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
+                  ))}
+                  <span className="text-xs text-muted-foreground">
+                    {avgRating.toFixed(1)} ({totalRatings})
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -76,16 +109,16 @@ const Profile = () => {
           </Card>
           <Card className="bg-gradient-card shadow-card border-0">
             <CardContent className="p-3 text-center">
-              <MessageCircle className="w-5 h-5 mx-auto mb-1 text-secondary" />
-              <div className="text-lg font-bold text-foreground">{user.stats.trades}</div>
-              <div className="text-xs text-muted-foreground">Trocas</div>
+              <img src="/facebook.png" alt="Doações" className="w-5 h-5 mx-auto mb-1 opacity-80" />
+              <div className="text-lg font-bold text-foreground">{donations}</div>
+              <div className="text-xs text-muted-foreground">Doações</div>
             </CardContent>
           </Card>
           <Card className="bg-gradient-card shadow-card border-0">
             <CardContent className="p-3 text-center">
-              <Settings className="w-5 h-5 mx-auto mb-1 text-accent-foreground" />
-              <div className="text-lg font-bold text-foreground">{user.stats.donations}</div>
-              <div className="text-xs text-muted-foreground">Doações</div>
+              <Coins className="w-5 h-5 mx-auto mb-1 text-amber-600" />
+              <div className="text-lg font-bold text-foreground">{coins}</div>
+              <div className="text-xs text-muted-foreground">Coins</div>
             </CardContent>
           </Card>
         </div>
@@ -109,7 +142,7 @@ const Profile = () => {
               </span>
             </button>
             <div className="premium-verified">
-              <img src="public/verificado.gif" alt="Verificado" />
+              <img src="/verificado.gif" alt="Verificado" />
               Perfil verificado e benefícios exclusivos
             </div>
           </div>

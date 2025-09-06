@@ -12,7 +12,7 @@ const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
   
   const tabs = [
     { id: 'home', icon: Home, label: t('discover') },
-    { id: 'search', icon: Search, label: t('search') },
+    { id: 'search', icon: Search, label: t('donation') },
     { id: 'add', icon: Plus, label: t('add') },
     { id: 'chat', icon: MessageCircle, label: t('matches') },
     { id: 'profile', icon: User, label: t('profile') },

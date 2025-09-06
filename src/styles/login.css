@@ -39,6 +39,7 @@
 
 /* Typing effect for welcome text */
 .typing {
+  display: inline-block;
   white-space: nowrap;
   overflow: hidden;
   border-right: 2px solid var(--pink-600);

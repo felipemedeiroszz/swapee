@@ -10,7 +10,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Star, Bell, BellOff, MoreVertical, Send, ShieldAlert, Eye, XCircle, MessageSquarePlus, Paperclip, Trash2, Pin, CheckCheck, Check, Image as ImageIcon, ArrowLeft, Search } from "lucide-react";
+import { Star, Bell, BellOff, MoreVertical, Send, ShieldAlert, Eye, XCircle, MessageSquarePlus, Paperclip, Trash2, Pin, CheckCheck, Check, Image as ImageIcon, ArrowLeft, Search, LockKeyhole, ShieldCheck } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
 import "../styles/chat.css";
@@ -93,6 +96,37 @@ export default function Chat() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
   const [tab, setTab] = useState<'all'|'unread'|'pinned'|'muted'>('all');
+  // Donation verification state
+  const [openGenCode, setOpenGenCode] = useState(false);
+  const [openVerify, setOpenVerify] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<string>("");
+  const [verifyCode, setVerifyCode] = useState<string>("");
+  const [verifiedMap, setVerifiedMap] = useState<Record<string, { code: string; verified: boolean }>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('swapee-donation-codes') || '{}');
+    } catch {
+      return {};
+    }
+  });
+  // Conversation type per conversation: 'Doação' | 'Troca'
+  const [convTypeMap, setConvTypeMap] = useState<Record<string, 'Doação'|'Troca'>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('swapee-conv-type') || '{}');
+    } catch {
+      return {} as Record<string, 'Doação'|'Troca'>;
+    }
+  });
+  // Lock conversation type (from navigation context) per conversation
+  const [lockTypeMap, setLockTypeMap] = useState<Record<string, boolean>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('swapee-conv-type-lock') || '{}');
+    } catch {
+      return {} as Record<string, boolean>;
+    }
+  });
+  // Rating after exchange
+  const [openRate, setOpenRate] = useState(false);
+  const [ratingValue, setRatingValue] = useState<number>(0);
 
   const active = useMemo(() => conversations.find((c) => c.id === activeId), [conversations, activeId]);
   const sortedConversations = useMemo(() => {
@@ -114,6 +148,104 @@ export default function Chat() {
     const int = setInterval(() => setIsOnline((o) => !o), 15000);
     return () => clearInterval(int);
   }, []);
+
+  // Persist verifiedMap changes
+  useEffect(() => {
+    localStorage.setItem('swapee-donation-codes', JSON.stringify(verifiedMap));
+  }, [verifiedMap]);
+
+  // Persist convTypeMap changes
+  useEffect(() => {
+    localStorage.setItem('swapee-conv-type', JSON.stringify(convTypeMap));
+  }, [convTypeMap]);
+
+  // Persist lockTypeMap changes
+  useEffect(() => {
+    localStorage.setItem('swapee-conv-type-lock', JSON.stringify(lockTypeMap));
+  }, [lockTypeMap]);
+
+  // Apply defaults from navigation: swapee-default-conv-type & swapee-lock-type
+  useEffect(() => {
+    if (!active) return;
+    const def = localStorage.getItem('swapee-default-conv-type') as 'Doação'|'Troca' | null;
+    const lock = localStorage.getItem('swapee-lock-type');
+    if (def) {
+      setConvTypeMap(prev => ({ ...prev, [active.id]: def }));
+      localStorage.removeItem('swapee-default-conv-type');
+    }
+    if (lock === '1') {
+      setLockTypeMap(prev => ({ ...prev, [active.id]: true }));
+      localStorage.removeItem('swapee-lock-type');
+    }
+  }, [active?.id]);
+
+  const generateSixDigit = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+  const onGenerateCode = () => {
+    if (!active) return;
+    const entry = verifiedMap[active.id];
+    // If there is a pending (unverified) code, just show it instead of generating a new one
+    if (entry && !entry.verified) {
+      setGeneratedCode(entry.code);
+      setOpenGenCode(true);
+      toast.message('Já existe um código pendente para esta conversa.');
+      return;
+    }
+    // Otherwise, generate a new one
+    const code = generateSixDigit();
+    setVerifiedMap(prev => ({ ...prev, [active.id]: { code, verified: false } }));
+    setGeneratedCode(code);
+    setOpenGenCode(true);
+  };
+
+  const onVerifyDelivery = () => {
+    if (!active) return;
+    const entry = verifiedMap[active.id];
+    if (!entry) {
+      toast.error('Nenhum código foi gerado para esta conversa.');
+      return;
+    }
+    if (verifyCode === entry.code) {
+      if (!entry.verified) {
+        // mark verified and award coins
+        const newMap = { ...verifiedMap, [active.id]: { code: entry.code, verified: true } };
+        setVerifiedMap(newMap);
+        const type = convTypeMap[active.id] || 'Doação';
+        if (type === 'Doação') {
+          const currentCoins = parseInt(localStorage.getItem('swapee-coins') || '0', 10) || 0;
+          localStorage.setItem('swapee-coins', String(currentCoins + 100));
+          const currentDonations = parseInt(localStorage.getItem('swapee-donations') || '0', 10) || 0;
+          localStorage.setItem('swapee-donations', String(currentDonations + 1));
+          // append system message
+          const sysMsg: Message = {
+            id: Math.random().toString(36).slice(2),
+            fromMe: false,
+            text: 'Doação confirmada ✅',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setConversations(prev => prev.map(c => c.id === active.id ? { ...c, messages: [...c.messages, sysMsg], lastMessage: sysMsg.text } : c));
+          toast.success('Entrega verificada! +100 coins');
+        } else {
+          // Troca: no coins; open rating dialog
+          const sysMsg: Message = {
+            id: Math.random().toString(36).slice(2),
+            fromMe: false,
+            text: 'Troca confirmada 🔄',
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setConversations(prev => prev.map(c => c.id === active.id ? { ...c, messages: [...c.messages, sysMsg], lastMessage: sysMsg.text } : c));
+          setOpenRate(true);
+          toast.success('Troca verificada! Avalie a outra pessoa.');
+        }
+      } else {
+        toast.message('Entrega já havia sido verificada.');
+      }
+      setOpenVerify(false);
+      setVerifyCode("");
+    } else {
+      toast.error('Código inválido. Tente novamente.');
+    }
+  };
 
   // No mobile, iniciar na lista (sem conversa ativa)
   useEffect(() => {
@@ -203,10 +335,10 @@ export default function Chat() {
                 <Button variant="secondary" size="icon" className="shrink-0"><MessageSquarePlus className="w-4 h-4" /></Button>
               </div>
               <div className="tabbar overflow-auto">
-                <button className={`tab ${tab==='all'?'active':''}`} onClick={()=>setTab('all')}>{t('all') || 'Todas'}</button>
-                <button className={`tab ${tab==='unread'?'active':''}`} onClick={()=>setTab('unread')}>{t('unread') || 'Não lidas'}</button>
-                <button className={`tab ${tab==='pinned'?'active':''}`} onClick={()=>setTab('pinned')}>{t('pinned') || 'Fixadas'}</button>
-                <button className={`tab ${tab==='muted'?'active':''}`} onClick={()=>setTab('muted')}>{t('muted') || 'Silenciadas'}</button>
+                <button className={`tab ${tab==='all'?'active':''}`} onClick={()=>setTab('all')}>{t('tabAll')}</button>
+                <button className={`tab ${tab==='unread'?'active':''}`} onClick={()=>setTab('unread')}>{t('tabUnread')}</button>
+                <button className={`tab ${tab==='pinned'?'active':''}`} onClick={()=>setTab('pinned')}>{t('tabPinned')}</button>
+                <button className={`tab ${tab==='muted'?'active':''}`} onClick={()=>setTab('muted')}>{t('tabMuted')}</button>
               </div>
             </div>
             <Separator />
@@ -277,28 +409,48 @@ export default function Chat() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4" /></Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-80">
-                      <SheetHeader>
-                        <SheetTitle>{t('actions') || 'Ações'}</SheetTitle>
-                      </SheetHeader>
-                      <div className="mt-4">
-                        {active && (
-                          <ProfileActions
-                            name={active.name}
-                            onMute={() => toggleMute(active.id)}
-                            muted={!!active.muted}
-                            onBlock={() => blockUser(active.id)}
-                            onRate={(n) => rateUser(active.id, n)}
-                          />
-                        )}
-                      </div>
-                    </SheetContent>
-                  </Sheet>
+                <div className="flex items-center gap-2">
+                  {/* Donation status indicator */}
+                  {active && verifiedMap[active.id]?.verified && (
+                    <span className="hidden sm:inline-flex items-center gap-1 text-xs font-medium text-green-600 px-2 py-1 rounded-full bg-green-100">
+                      <ShieldCheck className="w-3 h-3" /> Doação concluída
+                    </span>
+                  )}
+                  {/* Conversation type badge and actions */}
+                  {active && (
+                    <>
+                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${ (convTypeMap[active.id] || 'Doação') === 'Doação' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700' }`}>
+                        {(convTypeMap[active.id] || 'Doação')}
+                      </span>
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4" /></Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="w-80">
+                          <SheetHeader>
+                            <SheetTitle>{t('actions') || 'Ações'}</SheetTitle>
+                          </SheetHeader>
+                          <div className="mt-4 space-y-2">
+                            <Button variant="outline" className="w-full justify-start gap-2" onClick={onGenerateCode}>
+                              <LockKeyhole className="w-4 h-4" /> {(active && verifiedMap[active.id]?.verified===false) ? 'Mostrar código pendente' : 'Gerar código'}
+                            </Button>
+                            <Button className="w-full justify-start gap-2 bg-green-600 hover:bg-green-700" onClick={() => setOpenVerify(true)}>
+                              <ShieldCheck className="w-4 h-4" /> Verificar entrega
+                            </Button>
+                            {active && (
+                              <ProfileActions
+                                name={active.name}
+                                onMute={() => toggleMute(active.id)}
+                                muted={!!active.muted}
+                                onBlock={() => blockUser(active.id)}
+                                onRate={(n) => rateUser(active.id, n)}
+                              />
+                            )}
+                          </div>
+                        </SheetContent>
+                      </Sheet>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -396,10 +548,10 @@ export default function Chat() {
               <Button variant="secondary" size="icon" className="shrink-0"><MessageSquarePlus className="w-4 h-4" /></Button>
             </div>
             <div className="tabbar">
-              <button className={`tab ${tab==='all'?'active':''}`} onClick={()=>setTab('all')}>{t('all') || 'Todas'}</button>
-              <button className={`tab ${tab==='unread'?'active':''}`} onClick={()=>setTab('unread')}>{t('unread') || 'Não lidas'}</button>
-              <button className={`tab ${tab==='pinned'?'active':''}`} onClick={()=>setTab('pinned')}>{t('pinned') || 'Fixadas'}</button>
-              <button className={`tab ${tab==='muted'?'active':''}`} onClick={()=>setTab('muted')}>{t('muted') || 'Silenciadas'}</button>
+              <button className={`tab ${tab==='all'?'active':''}`} onClick={()=>setTab('all')}>{t('tabAll')}</button>
+              <button className={`tab ${tab==='unread'?'active':''}`} onClick={()=>setTab('unread')}>{t('tabUnread')}</button>
+              <button className={`tab ${tab==='pinned'?'active':''}`} onClick={()=>setTab('pinned')}>{t('tabPinned')}</button>
+              <button className={`tab ${tab==='muted'?'active':''}`} onClick={()=>setTab('muted')}>{t('tabMuted')}</button>
             </div>
           </div>
           <Separator />
@@ -490,15 +642,47 @@ export default function Chat() {
                   </div>
                 </div>
 
-                {/* Ações rápidas desktop */}
+                {/* Ações (desktop): badge + 3 pontinhos */}
                 <div className="hidden sm:flex items-center gap-2">
-                  <ProfileActions
-                    name={active.name}
-                    onMute={() => toggleMute(active.id)}
-                    muted={!!active.muted}
-                    onBlock={() => blockUser(active.id)}
-                    onRate={(n) => rateUser(active.id, n)}
-                  />
+                  {active && verifiedMap[active.id]?.verified && (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600 px-2 py-1 rounded-full bg-green-100">
+                      <ShieldCheck className="w-3 h-3" /> Doação concluída
+                    </span>
+                  )}
+                  {active && (
+                    <>
+                      <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${ (convTypeMap[active.id] || 'Doação') === 'Doação' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700' }`}>
+                        {(convTypeMap[active.id] || 'Doação')}
+                      </span>
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button variant="ghost" size="icon"><MoreVertical className="w-4 h-4" /></Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="w-80">
+                          <SheetHeader>
+                            <SheetTitle>{t('actions') || 'Ações'}</SheetTitle>
+                          </SheetHeader>
+                          <div className="mt-4 space-y-2">
+                            <Button variant="outline" className="w-full justify-start gap-2" onClick={onGenerateCode}>
+                              <LockKeyhole className="w-4 h-4" /> {(active && verifiedMap[active.id]?.verified===false) ? 'Mostrar código pendente' : 'Gerar código'}
+                            </Button>
+                            <Button className="w-full justify-start gap-2 bg-green-600 hover:bg-green-700" onClick={() => setOpenVerify(true)}>
+                              <ShieldCheck className="w-4 h-4" /> Verificar entrega
+                            </Button>
+                            {active && (
+                              <ProfileActions
+                                name={active.name}
+                                onMute={() => toggleMute(active.id)}
+                                muted={!!active.muted}
+                                onBlock={() => blockUser(active.id)}
+                                onRate={(n) => rateUser(active.id, n)}
+                              />
+                            )}
+                          </div>
+                        </SheetContent>
+                      </Sheet>
+                    </>
+                  )}
                 </div>
 
                 {/* Ações mobile em Sheet */}
@@ -615,7 +799,86 @@ export default function Chat() {
           )}
         </Card>
       </div>
-    </div>
+    {/* Dialog: Generated Code */}
+    <Dialog open={openGenCode} onOpenChange={setOpenGenCode}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Código de confirmação</DialogTitle>
+          <DialogDescription>Compartilhe este código de 6 dígitos com quem irá receber a doação.</DialogDescription>
+        </DialogHeader>
+        <div className="text-center">
+          <div className="text-3xl font-extrabold tracking-widest">{generatedCode}</div>
+          <div className="mt-3">
+            <Button variant="secondary" onClick={() => { navigator.clipboard?.writeText(generatedCode); toast.success('Código copiado'); }}>Copiar código</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Dialog: Verify Delivery */}
+    <Dialog open={openVerify} onOpenChange={setOpenVerify}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Verificar entrega</DialogTitle>
+          <DialogDescription>Digite o código de 6 dígitos recebido para confirmar a doação.</DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-center">
+          <InputOTP maxLength={6} value={verifyCode} onChange={setVerifyCode}>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setOpenVerify(false)}>Cancelar</Button>
+          <Button onClick={onVerifyDelivery} className="bg-green-600 hover:bg-green-700">Verificar</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Dialog: Rate after exchange */}
+    <Dialog open={openRate} onOpenChange={setOpenRate}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Avalie a troca</DialogTitle>
+          <DialogDescription>Como foi sua experiência com {active?.name}?</DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-center gap-2 py-2">
+          {[1,2,3,4,5].map((n) => (
+            <button key={n} onClick={() => setRatingValue(n)} aria-label={`Dar ${n} estrela(s)`}>
+              <Star className={`w-6 h-6 ${n <= ratingValue ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setOpenRate(false)}>Cancelar</Button>
+          <Button onClick={() => {
+            if (!active || ratingValue === 0) { toast.error('Selecione uma nota.'); return; }
+            try {
+              const raw = localStorage.getItem('swapee-user-ratings') || '{}';
+              const data = JSON.parse(raw);
+              const list = Array.isArray(data[active.name]) ? data[active.name] : [];
+              list.push(ratingValue);
+              data[active.name] = list;
+              localStorage.setItem('swapee-user-ratings', JSON.stringify(data));
+              toast.success('Avaliação enviada!');
+              const sysMsg: Message = { id: Math.random().toString(36).slice(2), fromMe: true, text: `Avaliação enviada: ${ratingValue}⭐`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+              setConversations(prev => prev.map(c => c.id === active.id ? { ...c, messages: [...c.messages, sysMsg], lastMessage: sysMsg.text } : c));
+              setOpenRate(false);
+              setRatingValue(0);
+            } catch {
+              toast.error('Não foi possível salvar a avaliação.');
+            }
+          }}>Enviar</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </div>
   );
 }
 

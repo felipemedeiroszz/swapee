@@ -72,6 +72,11 @@ const Home = () => {
       title: t('liked'),
       description: t('youLiked', { title: product?.title || '' }),
     });
+    // Set default conversation context as 'Troca' and lock type for the next chat session
+    try {
+      localStorage.setItem('swapee-default-conv-type', 'Troca');
+      localStorage.setItem('swapee-lock-type', '1');
+    } catch {}
     nextProduct();
   };
 
@@ -93,7 +98,8 @@ const Home = () => {
   };
 
   const nextProduct = () => {
-    if (currentIndex < products.length - 1) {
+    const trocaProducts = products.filter(p => p.type === 'Troca');
+    if (currentIndex < trocaProducts.length - 1) {
       setCurrentIndex(prev => prev + 1);
     } else {
       // No more products
@@ -104,11 +110,13 @@ const Home = () => {
     }
   };
 
-  const currentProduct = products[currentIndex];
+  const trocaProducts = products.filter(p => p.type === 'Troca');
+  const currentProduct = trocaProducts[currentIndex];
 
   return (
-    <div className="h-screen overflow-hidden bg-gradient-to-br from-accent via-background to-accent/50">
+    <div className="min-h-screen bg-gradient-to-br from-accent via-background to-accent/50">
       <div className="flex items-center justify-between bg-background/95 backdrop-blur-md border-b border-border z-40 fixed top-0 left-0 right-0 p-2 sm:p-3">
+
         <div className="flex items-center space-x-2 sm:space-x-4">
           <Link to="/" className="flex items-center group" title="Página Inicial">
             <div className="relative w-10 h-10 sm:w-12 sm:h-12">
@@ -180,10 +188,10 @@ const Home = () => {
         </div>
       </div>
       
-      <main className="h-[calc(100vh-4rem)] flex flex-col">
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
+      <main className="flex flex-col pt-20 pb-24 md:pt-24">
+        <div className="flex flex-col items-center justify-center p-4">
           {currentProduct ? (
-            <div className="w-full max-w-sm flex-1 flex flex-col justify-center">
+            <div className="w-full max-w-sm flex flex-col justify-center">
               <ProductCard
                 product={currentProduct}
                 onSwipeRight={handleSwipeRight}

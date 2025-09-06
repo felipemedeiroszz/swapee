@@ -141,6 +141,10 @@ const translations: Record<Language, Record<string, string>> = {
     typing: 'typing...',
     onlineNow: 'Online now',
     offline: 'Offline',
+    tabAll: 'All',
+    tabUnread: 'Unread',
+    tabPinned: 'Pinned',
+    tabMuted: 'Muted',
     writeMessage: 'Write a message...',
     send: 'Send',
     attachments: 'Attachments',
@@ -256,6 +260,10 @@ const translations: Record<Language, Record<string, string>> = {
     typing: 'digitando...',
     onlineNow: 'Online agora',
     offline: 'Offline',
+    tabAll: 'Todas',
+    tabUnread: 'Não lidas',
+    tabPinned: 'Fixadas',
+    tabMuted: 'Silenciadas',
     writeMessage: 'Escreva uma mensagem...',
     send: 'Enviar',
     attachments: 'Anexos',
@@ -363,7 +371,13 @@ const translations: Record<Language, Record<string, string>> = {
     portuguese: 'Português (Brasil)',
     spanish: 'Español',
     french: 'Français',
-    italian: 'Italiano'
+    italian: 'Italiano',
+
+    // Chat tabs
+    tabAll: 'Todas',
+    tabUnread: 'No leídas',
+    tabPinned: 'Fijadas',
+    tabMuted: 'Silenciadas'
   },
   
   fr: {
@@ -433,19 +447,6 @@ const translations: Record<Language, Record<string, string>> = {
     apply: 'Appliquer',
     
     // Languages
-    languages: 'Langues',
-    english: 'English',
-    portuguese: 'Português (Brasil)',
-    spanish: 'Español',
-    french: 'Français',
-    italian: 'Italiano'
-  },
-  
-  it: {
-    // App
-    appName: 'Swapee',
-    
-    // Navigation
     discover: 'Scopri',
     search: 'Cerca',
     add: 'Aggiungi',

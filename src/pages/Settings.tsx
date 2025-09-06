@@ -11,7 +11,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import Header from '@/components/Header'
-import { ArrowLeft, Shield, Bell, Trash2 } from 'lucide-react'
+import { ArrowLeft, Shield, Bell, Trash2, Coins, Eraser, LifeBuoy } from 'lucide-react'
 
 const Settings = () => {
   const navigate = useNavigate()
@@ -20,9 +20,31 @@ const Settings = () => {
   const [notifEmail, setNotifEmail] = useState(false)
   const [notifMatch, setNotifMatch] = useState(true)
   const [privPerfilPublico, setPrivPerfilPublico] = useState(true)
+  const [coins, setCoins] = useState<number>(() => parseInt(localStorage.getItem('swapee-coins') || '0', 10) || 0)
+  const [donations, setDonations] = useState<number>(() => parseInt(localStorage.getItem('swapee-donations') || '0', 10) || 0)
 
   const salvarPreferencias = () => {
     toast.success('Preferências salvas com sucesso')
+  }
+
+  const registrarDoacaoConcluida = () => {
+    const newDonations = donations + 1
+    const newCoins = coins + 100
+    setDonations(newDonations)
+    setCoins(newCoins)
+    localStorage.setItem('swapee-donations', String(newDonations))
+    localStorage.setItem('swapee-coins', String(newCoins))
+    toast.success('Doação registrada! +100 coins')
+  }
+
+  const limparCache = () => {
+    // Mantém coins e donations
+    const keepCoins = localStorage.getItem('swapee-coins')
+    const keepDonations = localStorage.getItem('swapee-donations')
+    localStorage.clear()
+    if (keepCoins !== null) localStorage.setItem('swapee-coins', keepCoins)
+    if (keepDonations !== null) localStorage.setItem('swapee-donations', keepDonations)
+    toast.success('Cache limpo')
   }
 
   
@@ -44,12 +66,52 @@ const Settings = () => {
           <p className="text-sm text-muted-foreground">Gerencie informações da conta, notificações, privacidade e preferências do aplicativo.</p>
         </div>
 
-        <Tabs defaultValue="seguranca" className="space-y-4">
-          <TabsList className="flex md:grid md:grid-cols-3 gap-2 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+        <Tabs defaultValue="recompensas" className="space-y-4">
+          <TabsList className="flex md:grid md:grid-cols-4 gap-2 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+            <TabsTrigger value="recompensas" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Coins className="w-4 h-4" /> Recompensas</TabsTrigger>
             <TabsTrigger value="seguranca" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Shield className="w-4 h-4" /> Segurança</TabsTrigger>
             <TabsTrigger value="notificacoes" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Bell className="w-4 h-4" /> Notificações</TabsTrigger>
             <TabsTrigger value="privacidade" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Shield className="w-4 h-4" /> Privacidade</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="recompensas">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Suas moedas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-amber-100 to-amber-50 border">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Saldo atual</p>
+                      <p className="text-3xl font-bold text-amber-700">{coins} coins</p>
+                      <p className="text-xs text-muted-foreground mt-1">Você ganha 100 coins por cada doação concluída.</p>
+                    </div>
+                    <Coins className="w-10 h-10 text-amber-500" />
+                  </div>
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <Button className="w-full" onClick={registrarDoacaoConcluida}>Registrar doação concluída (+100)</Button>
+                    <Button variant="outline" className="w-full" onClick={() => navigate('/perfil')}>Ver no perfil</Button>
+                  </div>
+                  <Separator className="my-4" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Doações concluídas</span>
+                    <span className="text-sm font-semibold">{donations}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ações rápidas</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start gap-2" onClick={limparCache}><Eraser className="w-4 h-4" /> Limpar cache</Button>
+                  <Button variant="outline" className="w-full justify-start gap-2" onClick={() => toast.message('Suporte', { description: 'Envie um email para suporte@swapee.com' })}><LifeBuoy className="w-4 h-4" /> Contatar suporte</Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           <TabsContent value="seguranca">
             <div className="grid grid-cols-1 gap-4">

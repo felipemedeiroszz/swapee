@@ -17,6 +17,7 @@ import AddItem from "./pages/AddItem";
 import Premium from "./pages/Premium";
 import Payment from "./pages/Payment";
 import Settings from "./pages/Settings";
+import Chat from "./pages/Chat";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
                 <Route path="/login" element={<Login />} />
                 <Route path="/cadastro" element={<Signup />} />
                 <Route path="/app" element={<Index />} />
+                <Route path="/chat" element={<Chat />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/perfil/editar" element={<EditProfile />} />
                 <Route path="/perfil/configuracoes" element={<Settings />} />

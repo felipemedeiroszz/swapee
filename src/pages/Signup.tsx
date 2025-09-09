@@ -116,7 +116,7 @@ const Signup = () => {
       <div className="w-full max-w-3xl">
         <div className="text-center mb-8 animate-in fade-in-50 slide-in-from-top-2">
           <Link to="/" className="inline-block">
-            <img src="/logoswapee.png" alt="Swapee" className="h-12 w-auto mx-auto" />
+            <img src="/logoswapee.png" alt="Swapee" className="h-20 w-auto mx-auto" />
           </Link>
         </div>
 

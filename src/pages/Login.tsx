@@ -105,7 +105,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setStatus('Redirecionando para o Google...')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-pink-100 rounded-lg bg-pink-50 text-pink-700 font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.01] active:scale-95"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#ff6b93] via-[#ff4d7c] to-[#ff9ab0] text-white shadow hover:shadow-lg transition-all duration-300 hover:scale-[1.015] active:scale-[0.99]"
             >
               <img src="/google.png" alt="Google" className="w-5 h-5 object-contain" />
               Entrar com Google
@@ -113,7 +113,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setStatus('Redirecionando para a Apple...')}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-pink-100 rounded-lg bg-pink-100 text-pink-800 font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.01] active:scale-95"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-[#ff6b93] via-[#ff4d7c] to-[#ff9ab0] text-white shadow hover:shadow-lg transition-all duration-300 hover:scale-[1.015] active:scale-[0.99]"
             >
               <img src="/apple.png" alt="Apple" className="w-5 h-5 object-contain" />
               Entrar com Apple

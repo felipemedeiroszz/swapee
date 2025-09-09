@@ -107,9 +107,7 @@ const Login = () => {
               onClick={() => setStatus('Redirecionando para o Google...')}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-pink-100 rounded-lg bg-pink-50 text-pink-700 font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.01] active:scale-95"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21.8055 10.0415H21V10H12V14H17.6515C16.827 16.3285 14.6115 18 12 18C8.6865 18 6 15.3135 6 12C6 8.6865 8.6865 6 12 6C13.5295 6 14.921 6.577 15.9805 7.5195L18.809 4.691C17.023 3.0265 14.634 2 12 2C6.4775 2 2 6.4775 2 12C2 17.5225 6.4775 22 12 22C17.5225 22 22 17.5225 22 12C22 11.3295 21.931 10.675 20.8055 10.0415Z" fill="#FF4D7C"/>
-              </svg>
+              <img src="/google.png" alt="Google" className="w-5 h-5" />
               Entrar com Google
             </button>
             <button
@@ -117,10 +115,7 @@ const Login = () => {
               onClick={() => setStatus('Redirecionando para a Apple...')}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-pink-100 rounded-lg bg-pink-100 text-pink-800 font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.01] active:scale-95"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18.71 19.5C18.617 20.3105 19.048 21.218 19.69 21.728C19.1715 22.415 18.4695 22.9985 17.391 22.9985C16.3125 22.9985 15.765 22.4795 14.8165 22.4795C13.8355 22.4795 13.2565 23 12.235 23C11.191 23 10.45 22.456 9.913 21.786C7.891 19.288 6.5425 15.87 7.405 11.44C8.17 7.521 11.1535 5.3195 13.939 5.3195C15.2995 5.3195 16.4705 6.0225 17.2765 6.0225C18.0235 6.0225 19.2685 5.245 20.765 5.3195C21.696 5.3445 23.5 6.041 23.5 8.555C23.5 9.94 23.415 10.9085 23.3 11.8965H18.71V19.5Z" fill="#D6336C"/>
-                <path d="M18.205 2.5C18.205 3.7525 17.4 4.9835 16.29 5.2305C15.2555 4.9005 14.38 3.9995 14.38 2.5C14.38 1.47 15.02 0.5 15.99 0.5C17.17 0.5 18.075 1.517 18.205 2.5Z" fill="#D6336C"/>
-              </svg>
+              <img src="/apple.png" alt="Apple" className="w-5 h-5" />
               Entrar com Apple
             </button>
           </div>

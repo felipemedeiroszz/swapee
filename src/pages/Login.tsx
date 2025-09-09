@@ -107,7 +107,7 @@ const Login = () => {
               onClick={() => setStatus('Redirecionando para o Google...')}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-pink-100 rounded-lg bg-pink-50 text-pink-700 font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.01] active:scale-95"
             >
-              <img src="/google.png" alt="Google" className="w-5 h-5" />
+              <img src="/google.png" alt="Google" className="w-5 h-5 object-contain" />
               Entrar com Google
             </button>
             <button
@@ -115,7 +115,7 @@ const Login = () => {
               onClick={() => setStatus('Redirecionando para a Apple...')}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-pink-100 rounded-lg bg-pink-100 text-pink-800 font-medium transition-all duration-300 hover:shadow-md hover:scale-[1.01] active:scale-95"
             >
-              <img src="/apple.png" alt="Apple" className="w-5 h-5" />
+              <img src="/apple.png" alt="Apple" className="w-5 h-5 object-contain" />
               Entrar com Apple
             </button>
           </div>

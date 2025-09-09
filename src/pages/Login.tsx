@@ -32,9 +32,6 @@ const Login = () => {
           <Link to="/" className="inline-block">
             <img src="/logoswapee.png" alt="Swapee" className="h-20 w-auto mx-auto" />
           </Link>
-          <div className="mt-3 text-pink-700 font-semibold">
-            <span className="typing">Bem-vindo de volta</span>
-          </div>
         </div>
 
         <div className="bg-white/70 backdrop-blur rounded-2xl border border-pink-100 shadow-[0_8px_30px_rgba(255,77,124,0.15)] p-6 md:p-7 animate-in fade-in-50 slide-in-from-bottom-2">

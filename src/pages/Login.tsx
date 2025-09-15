@@ -117,6 +117,12 @@ const Login = () => {
             </button>
           </div>
 
+          <div className="mt-4 text-center">
+            <Link to="/esqueci-senha" className="text-sm font-medium text-pink-700 hover:underline transition-colors">
+              Esqueci minha senha
+            </Link>
+          </div>
+
           <div className="mt-6 text-sm text-gray-700 flex justify-between">
             <span>Não tem conta?</span>
             <Link to="/cadastro" className="font-medium text-pink-700 hover:underline transition-colors">Criar conta</Link>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit3, MapPin, Heart, Package, Coins, Crown, Stars, Star } from 'lucide-react';
+import { Edit3, MapPin, Heart, Package, Coins, Crown, Stars, Star, LogOut, HandHeart } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,14 +56,10 @@ const Profile = () => {
       />
       
       <main className="pt-16 pb-24">
-        {/* Cover + Avatar */}
+        {/* Avatar */}
         <div className="relative animate-in fade-in-50">
-          <div className="h-40 sm:h-56 w-full overflow-hidden rounded-b-3xl shadow">
-            <img src={user.cover} alt="Capa do perfil" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-          </div>
-          <div className="px-4">
-            <div className="-mt-10 sm:-mt-12 flex items-end gap-3">
+          <div className="px-4 pt-6">
+            <div className="flex items-center gap-3">
               <div className="relative shrink-0">
                 <img
                   src={user.avatar}
@@ -71,7 +67,7 @@ const Profile = () => {
                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-background shadow-lg"
                 />
               </div>
-              <div className="flex-1 pb-1">
+              <div className="flex-1">
                 <h2 className="text-xl sm:text-2xl font-bold text-foreground">{user.name}</h2>
                 <div className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
                   <MapPin className="w-4 h-4" />
@@ -109,7 +105,7 @@ const Profile = () => {
           </Card>
           <Card className="bg-gradient-card shadow-card border-0">
             <CardContent className="p-3 text-center">
-              <img src="/facebook.png" alt="Doações" className="w-5 h-5 mx-auto mb-1 opacity-80" />
+              <HandHeart className="w-5 h-5 mx-auto mb-1 text-rose-500" />
               <div className="text-lg font-bold text-foreground">{donations}</div>
               <div className="text-xs text-muted-foreground">Doações</div>
             </CardContent>
@@ -174,6 +170,25 @@ const Profile = () => {
             >
               <Edit3 className="w-4 h-4 mr-2" />
               Editar Perfil
+            </Button>
+          </div>
+          
+          {/* Logout Button */}
+          <div className="mt-4">
+            <Button 
+              variant="destructive" 
+              className="w-full h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 border-0 shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 ease-out group"
+              onClick={() => {
+                // Clear user data from localStorage
+                localStorage.removeItem('swapee-coins');
+                localStorage.removeItem('swapee-donations');
+                localStorage.removeItem('swapee-user-ratings');
+                // Navigate to login page
+                navigate('/login');
+              }}
+            >
+              <LogOut className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-300" />
+              <span className="font-semibold">Fazer Logout</span>
             </Button>
           </div>
         </div>

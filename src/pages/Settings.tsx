@@ -19,23 +19,17 @@ const Settings = () => {
   const [notifPush, setNotifPush] = useState(true)
   const [notifEmail, setNotifEmail] = useState(false)
   const [notifMatch, setNotifMatch] = useState(true)
-  const [privPerfilPublico, setPrivPerfilPublico] = useState(true)
   const [coins, setCoins] = useState<number>(() => parseInt(localStorage.getItem('swapee-coins') || '0', 10) || 0)
   const [donations, setDonations] = useState<number>(() => parseInt(localStorage.getItem('swapee-donations') || '0', 10) || 0)
+  const [senhaAtual, setSenhaAtual] = useState('')
+  const [novaSenha, setNovaSenha] = useState('')
+  const [confirmarSenha, setConfirmarSenha] = useState('')
 
   const salvarPreferencias = () => {
     toast.success('Preferências salvas com sucesso')
   }
 
-  const registrarDoacaoConcluida = () => {
-    const newDonations = donations + 1
-    const newCoins = coins + 100
-    setDonations(newDonations)
-    setCoins(newCoins)
-    localStorage.setItem('swapee-donations', String(newDonations))
-    localStorage.setItem('swapee-coins', String(newCoins))
-    toast.success('Doação registrada! +100 coins')
-  }
+
 
   const limparCache = () => {
     // Mantém coins e donations
@@ -67,15 +61,14 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="recompensas" className="space-y-4">
-          <TabsList className="flex md:grid md:grid-cols-4 gap-2 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+          <TabsList className="flex md:grid md:grid-cols-3 gap-2 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             <TabsTrigger value="recompensas" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Coins className="w-4 h-4" /> Recompensas</TabsTrigger>
             <TabsTrigger value="seguranca" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Shield className="w-4 h-4" /> Segurança</TabsTrigger>
             <TabsTrigger value="notificacoes" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Bell className="w-4 h-4" /> Notificações</TabsTrigger>
-            <TabsTrigger value="privacidade" className="flex items-center gap-2 min-w-[160px] h-10 px-4 md:min-w-0"><Shield className="w-4 h-4" /> Privacidade</TabsTrigger>
           </TabsList>
 
           <TabsContent value="recompensas">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Suas moedas</CardTitle>
@@ -89,8 +82,7 @@ const Settings = () => {
                     </div>
                     <Coins className="w-10 h-10 text-amber-500" />
                   </div>
-                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <Button className="w-full" onClick={registrarDoacaoConcluida}>Registrar doação concluída (+100)</Button>
+                  <div className="mt-4">
                     <Button variant="outline" className="w-full" onClick={() => navigate('/perfil')}>Ver no perfil</Button>
                   </div>
                   <Separator className="my-4" />
@@ -101,15 +93,7 @@ const Settings = () => {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ações rápidas</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start gap-2" onClick={limparCache}><Eraser className="w-4 h-4" /> Limpar cache</Button>
-                  <Button variant="outline" className="w-full justify-start gap-2" onClick={() => toast.message('Suporte', { description: 'Envie um email para suporte@swapee.com' })}><LifeBuoy className="w-4 h-4" /> Contatar suporte</Button>
-                </CardContent>
-              </Card>
+
             </div>
           </TabsContent>
 
@@ -121,14 +105,60 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="senha">Alterar senha</Label>
-                    <Input id="senha" type="password" placeholder="Nova senha" />
+                    <Label htmlFor="senhaAtual">Senha atual</Label>
+                    <Input 
+                      id="senhaAtual" 
+                      type="password" 
+                      placeholder="Digite sua senha atual" 
+                      value={senhaAtual}
+                      onChange={(e) => setSenhaAtual(e.target.value)}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="senha2">Confirmar senha</Label>
-                    <Input id="senha2" type="password" placeholder="Confirmar nova senha" />
+                    <Label htmlFor="novaSenha">Nova senha</Label>
+                    <Input 
+                      id="novaSenha" 
+                      type="password" 
+                      placeholder="Digite a nova senha" 
+                      value={novaSenha}
+                      onChange={(e) => setNovaSenha(e.target.value)}
+                      disabled={!senhaAtual}
+                    />
                   </div>
-                  <Button onClick={() => toast.success('Senha atualizada')}>Atualizar senha</Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmarSenha">Confirmar nova senha</Label>
+                    <Input 
+                      id="confirmarSenha" 
+                      type="password" 
+                      placeholder="Confirme a nova senha" 
+                      value={confirmarSenha}
+                      onChange={(e) => setConfirmarSenha(e.target.value)}
+                      disabled={!senhaAtual}
+                    />
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      if (!senhaAtual) {
+                        toast.error('Digite sua senha atual')
+                        return
+                      }
+                      if (novaSenha !== confirmarSenha) {
+                        toast.error('As senhas não coincidem')
+                        return
+                      }
+                      if (novaSenha.length < 6) {
+                        toast.error('A nova senha deve ter pelo menos 6 caracteres')
+                        return
+                      }
+                      toast.success('Senha atualizada com sucesso')
+                      setSenhaAtual('')
+                      setNovaSenha('')
+                      setConfirmarSenha('')
+                    }}
+                    disabled={!senhaAtual || !novaSenha || !confirmarSenha}
+                  >
+                    Atualizar senha
+                  </Button>
 
                   <Separator className="my-2" />
 
@@ -186,52 +216,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="privacidade">
-            <Card>
-              <CardHeader>
-                <CardTitle>Privacidade</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-medium">Perfil público</p>
-                    <p className="text-sm text-muted-foreground">Permitir que outros usuários vejam seu perfil</p>
-                  </div>
-                  <Switch checked={privPerfilPublico} onCheckedChange={setPrivPerfilPublico} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Quem pode enviar mensagens</Label>
-                    <Select defaultValue="todos">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Escolher" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="todos">Todos</SelectItem>
-                        <SelectItem value="matches">Somente matches</SelectItem>
-                        <SelectItem value="ninguem">Ninguém</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Mostrar distância</Label>
-                    <Select defaultValue="sim">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Escolher" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sim">Sim</SelectItem>
-                        <SelectItem value="nao">Não</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="pt-2">
-                  <Button onClick={salvarPreferencias}>Salvar preferências</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+
 
           
         </Tabs>

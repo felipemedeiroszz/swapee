@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeft, Camera, Image as ImageIcon, X, Eye, Plus, Trash2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Camera, X, Eye, Plus, Trash2, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// removed Label in favor of floating labels
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -21,10 +20,9 @@ const EditProfile = () => {
     bio: 'Apaixonada por moda sustentável e trocas conscientes.',
   });
   const [avatar, setAvatar] = useState('https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face');
-  const [cover, setCover] = useState('https://images.unsplash.com/photo-1520975916090-3105956dac38?w=1200&h=400&fit=crop');
   const [viewMode, setViewMode] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [zoom, setZoom] = useState(100); // mock crop zoom
+  const [zoom, setZoom] = useState(100);
   const [socials, setSocials] = useState<{ id: string; label: string; url: string }[]>([
     { id: 's1', label: 'Instagram', url: 'https://instagram.com/maria' },
   ]);
@@ -44,7 +42,6 @@ const EditProfile = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você implementaria a lógica para salvar as alterações
     console.log('Dados atualizados:', formData);
     navigate('/perfil');
   };
@@ -59,7 +56,7 @@ const EditProfile = () => {
       return;
     }
     if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`Arquivo muito grande. Máximo ${maxSizeMB}MB.`);
+      toast.error(`Imagem muito grande. Máximo ${maxSizeMB}MB.`);
       return;
     }
     const reader = new FileReader();
@@ -72,35 +69,13 @@ const EditProfile = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const maxSizeMB = 8; // capas podem ser maiores
-    if (!validTypes.includes(file.type)) {
-      toast.error('Formato inválido para a capa. Use JPG, PNG ou WEBP.');
-      return;
-    }
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`Capa muito grande. Máximo ${maxSizeMB}MB.`);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (event.target?.result) {
-        setCover(event.target.result as string);
-        toast.success('Pré-visualização da capa atualizada');
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   const emailValid = useMemo(() => /.+@.+\..+/.test(formData.email), [formData.email]);
   const phoneValid = useMemo(() => formData.phone.replace(/\D/g, '').length >= 10, [formData.phone]);
   const nameValid = useMemo(() => formData.name.trim().length >= 2, [formData.name]);
 
   const addSocial = () => {
-    setSocials((s) => [...s, { id: crypto.randomUUID(), label: 'Link', url: '' }]);
+    const newId = `s${Date.now()}`;
+    setSocials((s) => [...s, { id: newId, label: '', url: '' }]);
   };
   const updateSocial = (id: string, patch: Partial<{ label: string; url: string }>) => {
     setSocials((s) => s.map((it) => (it.id === id ? { ...it, ...patch } : it)));
@@ -119,38 +94,34 @@ const EditProfile = () => {
       />
       
       <main className="pt-20 pb-28 lg:pb-24 px-4 max-w-4xl mx-auto">
-        {/* Capa + Ações */}
-        <div className="mb-6 cover-wrap shadow-soft bg-card-soft">
-          <div className="relative h-40 sm:h-56">
-            <img src={cover} alt="Capa" className="w-full h-full object-cover" />
-            <div className="cover-actions">
-              <label htmlFor="cover-upload" className="cover-btn"><ImageIcon className="w-4 h-4"/>Alterar capa<input id="cover-upload" type="file" accept="image/*" className="hidden" onChange={handleCoverChange} /></label>
-              <Dialog open={showPreview} onOpenChange={setShowPreview}>
-                <DialogTrigger asChild>
-                  <button className="cover-btn"><Eye className="w-4 h-4"/>Pré-visualizar</button>
-                </DialogTrigger>
-                <DialogContent className="preview-card max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Pré-visualização do perfil</DialogTitle>
-                  </DialogHeader>
-                  <div>
-                    <div className="preview-header">
-                      <div className="flex items-center gap-3">
-                        <img src={avatar} className="w-14 h-14 rounded-full object-cover" />
-                        <div>
-                          <div className="font-semibold text-white">{formData.name}</div>
-                          <div className="text-white/80 text-sm">{formData.location}</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <p className="text-sm text-muted-foreground">{formData.bio}</p>
+        {/* Avatar + Ações */}
+        <div className="mb-6">
+          <Dialog open={showPreview} onOpenChange={setShowPreview}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="mb-4">
+                <Eye className="w-4 h-4 mr-2"/>Pré-visualizar perfil
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="preview-card max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Pré-visualização do perfil</DialogTitle>
+              </DialogHeader>
+              <div>
+                <div className="preview-header">
+                  <div className="flex items-center gap-3">
+                    <img src={avatar} className="w-14 h-14 rounded-full object-cover" />
+                    <div>
+                      <div className="font-semibold text-white">{formData.name}</div>
+                      <div className="text-white/80 text-sm">{formData.location}</div>
                     </div>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
+                </div>
+                <div className="p-4">
+                  <p className="text-sm text-muted-foreground">{formData.bio}</p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -162,11 +133,9 @@ const EditProfile = () => {
               <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
               <button type="button" className="avatar-remove" onClick={()=>setAvatar('')}><X className="w-4 h-4"/></button>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">Modo {viewMode ? 'visualização' : 'edição'}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Modo visualização</span>
               <Switch checked={viewMode} onCheckedChange={setViewMode} />
-              <Button type="button" variant="outline" onClick={()=>{setFormData({ ...formData }); toast.success('Alterações descartadas');}}>Cancelar</Button>
-              <Button type="submit">Salvar alterações</Button>
             </div>
           </div>
 
@@ -224,51 +193,53 @@ const EditProfile = () => {
             </div>
           </section>
 
-          {/* Seção: Sobre mim */}
+          {/* Seção: Bio */}
           <section className="p-4 bg-card-soft section-card shadow-soft">
             <div className="mb-3">
-              <h3 className="section-title">Sobre mim</h3>
-              <p className="section-sub">Conte um pouco sobre você. {formData.bio.length}/200</p>
+              <h3 className="section-title">Sobre você</h3>
+              <p className="section-sub">Conte um pouco sobre seus interesses e o que você procura.</p>
             </div>
             <div className="fl">
-              <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} disabled={viewMode} rows={4} maxLength={200} placeholder=" " />
-              <label htmlFor="bio">Descrição</label>
+              <Textarea id="bio" name="bio" value={formData.bio} onChange={handleChange} disabled={viewMode} placeholder=" " rows={3} />
+              <label htmlFor="bio">Biografia</label>
             </div>
           </section>
 
-          {/* Seção: Redes sociais */}
+          {/* Seção: Redes Sociais */}
           <section className="p-4 bg-card-soft section-card shadow-soft">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h3 className="section-title">Redes sociais e links</h3>
-                <p className="section-sub">Adicione links para que outros conheçam mais sobre você.</p>
+                <h3 className="section-title">Redes sociais</h3>
+                <p className="section-sub">Adicione links para suas redes sociais (opcional).</p>
               </div>
-              <Button type="button" variant="secondary" onClick={addSocial}><Plus className="w-4 h-4 mr-1"/>Adicionar</Button>
+              <Button type="button" variant="outline" size="sm" onClick={addSocial} disabled={viewMode}>
+                <Plus className="w-4 h-4 mr-1"/>Adicionar
+              </Button>
             </div>
             <div className="space-y-3">
-              {socials.map((s)=> (
-                <div key={s.id} className="grid grid-cols-1 md:grid-cols-8 gap-2 items-center">
-                  <div className="md:col-span-3 fl">
-                    <Input value={s.label} onChange={(e)=>updateSocial(s.id, { label: e.target.value })} disabled={viewMode} placeholder=" " />
-                    <label>Nome do link</label>
+              {socials.map((social) => (
+                <div key={social.id} className="flex gap-2">
+                  <div className="fl flex-1">
+                    <Input value={social.label} onChange={(e)=>updateSocial(social.id, {label: e.target.value})} disabled={viewMode} placeholder=" " />
+                    <label>Rede social</label>
                   </div>
-                  <div className="md:col-span-4 fl">
-                    <Input value={s.url} onChange={(e)=>updateSocial(s.id, { url: e.target.value })} disabled={viewMode} placeholder=" " />
+                  <div className="fl flex-[2]">
+                    <Input value={social.url} onChange={(e)=>updateSocial(social.id, {url: e.target.value})} disabled={viewMode} placeholder=" " />
                     <label>URL</label>
                   </div>
-                  <div className="md:col-span-1 flex justify-end">
-                    <Button type="button" variant="ghost" size="icon" onClick={()=>removeSocial(s.id)} disabled={viewMode}><Trash2 className="w-4 h-4"/></Button>
-                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={()=>removeSocial(social.id)} disabled={viewMode}>
+                    <Trash2 className="w-4 h-4"/>
+                  </Button>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Seção: Ajuste de foto (crop simplificado) */}
+          {/* Seção: Ajustes de Foto */}
           <section className="p-4 bg-card-soft section-card shadow-soft">
             <div className="mb-3">
-              <h3 className="section-title">Ajustar foto de perfil</h3>
-              <p className="section-sub">Ajuste o zoom para enquadrar melhor (preview ao lado).</p>
+              <h3 className="section-title">Ajustes de foto</h3>
+              <p className="section-sub">Ajuste o zoom da sua foto de perfil.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
               <input type="range" min={50} max={150} step={1} value={zoom} onChange={(e)=>setZoom(parseInt(e.target.value))} />

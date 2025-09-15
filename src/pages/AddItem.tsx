@@ -25,6 +25,7 @@ const schema = z.object({
   title: z.string().min(3, "Informe um título (min. 3 caracteres)"),
   description: z.string().min(10, "Descreva melhor seu item (min. 10 caracteres)"),
   category: z.string({ required_error: "Selecione uma categoria" }),
+  subcategory: z.string({ required_error: "Selecione uma subcategoria" }),
   price: z
     .string()
     .refine((v) => v === "" || !Number.isNaN(Number(String(v).replace(/[,]/g, "."))), {
@@ -41,13 +42,110 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const categories = [
-  { value: "eletronicos", label: "Eletrônicos" },
-  { value: "moveis", label: "Móveis" },
-  { value: "roupas", label: "Roupas" },
-  { value: "livros", label: "Livros" },
-  { value: "outros", label: "Outros" },
-];
+const categoriesWithSubcategories = {
+  eletronicos: {
+    label: "Eletrônicos",
+    subcategories: [
+      { value: "smartphones", label: "Smartphones" },
+      { value: "notebooks", label: "Notebooks" },
+      { value: "tablets", label: "Tablets" },
+      { value: "fones", label: "Fones de Ouvido" },
+      { value: "cameras", label: "Câmeras" },
+      { value: "videogames", label: "Videogames" },
+      { value: "tv", label: "TVs" },
+      { value: "outros_eletronicos", label: "Outros Eletrônicos" }
+    ]
+  },
+  moveis: {
+    label: "Móveis",
+    subcategories: [
+      { value: "sofas", label: "Sofás" },
+      { value: "mesas", label: "Mesas" },
+      { value: "cadeiras", label: "Cadeiras" },
+      { value: "camas", label: "Camas" },
+      { value: "armarios", label: "Armários" },
+      { value: "estantes", label: "Estantes" },
+      { value: "decoracao", label: "Decoração" },
+      { value: "outros_moveis", label: "Outros Móveis" }
+    ]
+  },
+  roupas: {
+    label: "Roupas",
+    subcategories: [
+      { value: "camisetas", label: "Camisetas" },
+      { value: "calcas", label: "Calças" },
+      { value: "vestidos", label: "Vestidos" },
+      { value: "sapatos", label: "Sapatos" },
+      { value: "acessorios", label: "Acessórios" },
+      { value: "bolsas", label: "Bolsas" },
+      { value: "jaquetas", label: "Jaquetas" },
+      { value: "outras_roupas", label: "Outras Roupas" }
+    ]
+  },
+  livros: {
+    label: "Livros",
+    subcategories: [
+      { value: "ficcao", label: "Ficção" },
+      { value: "nao_ficcao", label: "Não-ficção" },
+      { value: "academicos", label: "Acadêmicos" },
+      { value: "infantis", label: "Infantis" },
+      { value: "tecnicos", label: "Técnicos" },
+      { value: "biografias", label: "Biografias" },
+      { value: "revistas", label: "Revistas" },
+      { value: "outros_livros", label: "Outros Livros" }
+    ]
+  },
+  esportes: {
+    label: "Esportes",
+    subcategories: [
+      { value: "futebol", label: "Futebol" },
+      { value: "academia", label: "Academia" },
+      { value: "corrida", label: "Corrida" },
+      { value: "natacao", label: "Natação" },
+      { value: "ciclismo", label: "Ciclismo" },
+      { value: "tenis", label: "Tênis" },
+      { value: "outros_esportes", label: "Outros Esportes" }
+    ]
+  },
+  casa: {
+    label: "Casa e Jardim",
+    subcategories: [
+      { value: "eletrodomesticos", label: "Eletrodomésticos" },
+      { value: "utensilios", label: "Utensílios" },
+      { value: "plantas", label: "Plantas" },
+      { value: "ferramentas", label: "Ferramentas" },
+      { value: "limpeza", label: "Limpeza" },
+      { value: "outros_casa", label: "Outros Casa" }
+    ]
+  },
+  veiculos: {
+    label: "Veículos",
+    subcategories: [
+      { value: "carros", label: "Carros" },
+      { value: "motos", label: "Motos" },
+      { value: "bicicletas", label: "Bicicletas" },
+      { value: "pecas", label: "Peças" },
+      { value: "acessorios_veiculos", label: "Acessórios" },
+      { value: "outros_veiculos", label: "Outros Veículos" }
+    ]
+  },
+  outros: {
+    label: "Outros",
+    subcategories: [
+      { value: "arte", label: "Arte" },
+      { value: "musica", label: "Música" },
+      { value: "brinquedos", label: "Brinquedos" },
+      { value: "pets", label: "Pets" },
+      { value: "servicos", label: "Serviços" },
+      { value: "diversos", label: "Diversos" }
+    ]
+  }
+};
+
+const categories = Object.entries(categoriesWithSubcategories).map(([value, data]) => ({
+  value,
+  label: data.label
+}));
 
 export default function AddItem() {
   const { toast } = useToast();
@@ -61,10 +159,14 @@ export default function AddItem() {
       title: "",
       description: "",
       category: "",
+      subcategory: "",
       price: "",
       type: "troca",
     },
   });
+
+  const selectedCategory = form.watch("category");
+  const availableSubcategories = selectedCategory ? categoriesWithSubcategories[selectedCategory as keyof typeof categoriesWithSubcategories]?.subcategories || [] : [];
 
   const imagesWatch = form.watch("images");
   const descriptionWatch = form.watch("description") || "";
@@ -96,11 +198,14 @@ export default function AddItem() {
 
   const onSubmit = (values: FormValues) => {
     // Simula envio; aqui poderíamos enviar para API
+    const categoryLabel = categories.find(c => c.value === values.category)?.label;
+    const subcategoryLabel = availableSubcategories.find(s => s.value === values.subcategory)?.label;
+    
     toast({
       title: "Item adicionado!",
-      description: `"${values.title}" cadastrado como ${values.type === "troca" ? "Troca" : "Doação"}.`,
+      description: `"${values.title}" cadastrado em ${categoryLabel} > ${subcategoryLabel} como ${values.type === "troca" ? "Troca" : "Doação"}.`,
     });
-    form.reset({ title: "", description: "", category: "", price: "", type: "troca" });
+    form.reset({ title: "", description: "", category: "", subcategory: "", price: "", type: "troca" });
     setPreviews([]);
   };
 
@@ -170,9 +275,12 @@ export default function AddItem() {
                       <FormItem>
                         <FormLabel>Categoria</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            form.setValue("subcategory", ""); // Reset subcategory when category changes
+                          }} value={field.value}>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione" />
+                              <SelectValue placeholder="Selecione uma categoria" />
                             </SelectTrigger>
                             <SelectContent>
                               {categories.map((c) => (
@@ -190,18 +298,47 @@ export default function AddItem() {
 
                   <FormField
                     control={form.control}
-                    name="price"
+                    name="subcategory"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Valor estimado (opcional)</FormLabel>
+                        <FormLabel>Subcategoria</FormLabel>
                         <FormControl>
-                          <Input inputMode="decimal" placeholder="Ex.: 250" {...field} />
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            disabled={!selectedCategory}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={selectedCategory ? "Selecione uma subcategoria" : "Primeiro selecione uma categoria"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableSubcategories.map((sub) => (
+                                <SelectItem key={sub.value} value={sub.value}>
+                                  {sub.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor estimado (opcional)</FormLabel>
+                      <FormControl>
+                        <Input inputMode="decimal" placeholder="Ex.: 250" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <FormField
                   control={form.control}

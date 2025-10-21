@@ -12,6 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import Header from '@/components/Header'
 import { ArrowLeft, Shield, Bell, Trash2, Coins, Eraser, LifeBuoy } from 'lucide-react'
+import HealthStatus from '@/components/HealthStatus'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { linkOAuth } from '@/services/auth'
+import { changeUserPassword, deleteUser } from '@/services/users'
 
 const Settings = () => {
   const navigate = useNavigate()
@@ -24,6 +28,12 @@ const Settings = () => {
   const [senhaAtual, setSenhaAtual] = useState('')
   const [novaSenha, setNovaSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
+  const [oauthDialogOpen, setOauthDialogOpen] = useState(false)
+  const [oauthProvider, setOauthProvider] = useState<'google' | 'apple' | null>(null)
+  const [oauthEmail, setOauthEmail] = useState('')
+  const [oauthPassword, setOauthPassword] = useState('')
+  const [oauthLoading, setOauthLoading] = useState(false)
+  const [pwdLoading, setPwdLoading] = useState(false)
 
   const salvarPreferencias = () => {
     toast.success('Preferências salvas com sucesso')
@@ -137,7 +147,7 @@ const Settings = () => {
                     />
                   </div>
                   <Button 
-                    onClick={() => {
+                    onClick={async () => {
                       if (!senhaAtual) {
                         toast.error('Digite sua senha atual')
                         return
@@ -150,14 +160,28 @@ const Settings = () => {
                         toast.error('A nova senha deve ter pelo menos 6 caracteres')
                         return
                       }
-                      toast.success('Senha atualizada com sucesso')
-                      setSenhaAtual('')
-                      setNovaSenha('')
-                      setConfirmarSenha('')
+                      const userId = localStorage.getItem('swapee-user-id')
+                      if (!userId) {
+                        toast.error('ID do usuário não encontrado')
+                        return
+                      }
+                      setPwdLoading(true)
+                      try {
+                        await changeUserPassword(userId, { currentPassword: senhaAtual, newPassword: novaSenha })
+                        toast.success('Senha atualizada com sucesso')
+                        setSenhaAtual('')
+                        setNovaSenha('')
+                        setConfirmarSenha('')
+                      } catch (err: any) {
+                        const msg = err?.message || 'Erro ao atualizar senha'
+                        toast.error(msg)
+                      } finally {
+                        setPwdLoading(false)
+                      }
                     }}
-                    disabled={!senhaAtual || !novaSenha || !confirmarSenha}
+                    disabled={pwdLoading || !senhaAtual || !novaSenha || !confirmarSenha}
                   >
-                    Atualizar senha
+                    {pwdLoading ? 'Atualizando...' : 'Atualizar senha'}
                   </Button>
 
                   <Separator className="my-2" />
@@ -173,12 +197,123 @@ const Settings = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => toast.success('Conta excluída (exemplo)')}>Confirmar</AlertDialogAction>
+                        <AlertDialogAction onClick={async () => {
+                          const userId = localStorage.getItem('swapee-user-id')
+                          if (!userId) {
+                            toast.error('ID do usuário não encontrado')
+                            return
+                          }
+                          try {
+                            await deleteUser(userId)
+                            toast.success('Conta excluída com sucesso')
+                            localStorage.clear()
+                            navigate('/login')
+                          } catch (err: any) {
+                            const msg = err?.message || 'Erro ao excluir conta'
+                            toast.error(msg)
+                          }
+                        }}>Confirmar</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vincular conta OAuth</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">Conecte sua conta do Google ou Apple à sua conta existente.</p>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => { setOauthProvider('google'); setOauthDialogOpen(true); }}
+                    >
+                      Vincular Google
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => { setOauthProvider('apple'); setOauthDialogOpen(true); }}
+                    >
+                      Vincular Apple
+                    </Button>
+                  </div>
+
+                  <Dialog open={oauthDialogOpen} onOpenChange={setOauthDialogOpen}>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>
+                          {oauthProvider === 'google' ? 'Vincular Google' : oauthProvider === 'apple' ? 'Vincular Apple' : 'Vincular conta OAuth'}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="oauthEmail">Email da conta existente</Label>
+                          <Input
+                            id="oauthEmail"
+                            type="email"
+                            placeholder="voce@exemplo.com"
+                            value={oauthEmail}
+                            onChange={(e) => setOauthEmail(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="oauthPassword">Senha da conta existente</Label>
+                          <Input
+                            id="oauthPassword"
+                            type="password"
+                            placeholder="••••••••"
+                            value={oauthPassword}
+                            onChange={(e) => setOauthPassword(e.target.value)}
+                          />
+                        </div>
+                        <div className="pt-2 flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setOauthDialogOpen(false)
+                              setOauthProvider(null)
+                              setOauthEmail('')
+                              setOauthPassword('')
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            disabled={oauthLoading || !oauthProvider || !oauthEmail || !oauthPassword}
+                            onClick={async () => {
+                              if (!oauthProvider) return
+                              setOauthLoading(true)
+                              try {
+                                const res = await linkOAuth({ provider: oauthProvider, email: oauthEmail, password: oauthPassword })
+                                if (res?.success) {
+                                  toast.success(res.message || 'Conta vinculada com sucesso')
+                                  setOauthDialogOpen(false)
+                                  setOauthProvider(null)
+                                  setOauthEmail('')
+                                  setOauthPassword('')
+                                } else {
+                                  toast.error(res?.message || 'Não foi possível vincular a conta')
+                                }
+                              } catch (err: any) {
+                                const msg = err?.message || 'Erro ao vincular conta'
+                                toast.error(msg)
+                              } finally {
+                                setOauthLoading(false)
+                              }
+                            }}
+                          >
+                            {oauthLoading ? 'Vinculando...' : 'Vincular'}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardContent>
+              </Card>
+
+              <HealthStatus />
             </div>
           </TabsContent>
 

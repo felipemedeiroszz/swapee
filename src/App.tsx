@@ -20,6 +20,9 @@ import Premium from "./pages/Premium";
 import Payment from "./pages/Payment";
 import Settings from "./pages/Settings";
 import Chat from "./pages/Chat";
+import Matches from "./pages/Matches";
+import Welcome from "./pages/Welcome";
+import Cleanup from "./pages/Cleanup";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +42,10 @@ const App = () => (
                 <Route path="/redefinir-senha" element={<ResetPassword />} />
                 <Route path="/app" element={<Index />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/chat/:conversationId" element={<Chat />} />
+                <Route path="/matches" element={<Matches />} />
+                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/admin/cleanup" element={<Cleanup />} />
                 <Route path="/perfil" element={<Profile />} />
                 <Route path="/perfil/editar" element={<EditProfile />} />
                 <Route path="/perfil/configuracoes" element={<Settings />} />

@@ -1,5 +1,5 @@
 import { Heart, MessageCircle, ArrowLeft, Search, X, LayoutGrid, List, Share2, MoreVertical } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { toast } from 'sonner';
 import Header from '@/components/Header';
 import '../styles/liked-items.css';
+import { listLikedItems as apiListLikedItems, removeLikedItem as apiRemoveLikedItem } from '@/services/discovery';
 
 type LikedItem = {
   id: string;
@@ -90,18 +91,54 @@ const mockLikedItems: LikedItem[] = [
 const LikedItems = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [items, setItems] = useState<LikedItem[]>(mockLikedItems);
+  const [items, setItems] = useState<LikedItem[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'data' | 'popularidade' | 'preco'>('data');
   const [typeFilter, setTypeFilter] = useState<'todos' | 'Troca' | 'Doação' | 'Venda'>('todos');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [heartPulse, setHeartPulse] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(false);
 
-  const toggleLike = (id: string) => {
-    setItems(prev => prev.map(i => i.id === id ? { ...i, liked: !i.liked } : i));
-    setHeartPulse(prev => new Set(prev).add(id));
-    setTimeout(() => setHeartPulse(prev => { const n = new Set(prev); n.delete(id); return n; }), 450);
+  useEffect(() => {
+    const fetchLiked = async () => {
+      try {
+        setLoading(true);
+        const res = await apiListLikedItems(1, 20);
+        const mapped: LikedItem[] = res.items.map((it: any) => ({
+          id: it.id,
+          title: it.titulo,
+          image: (it.imagens && it.imagens.length ? it.imagens[0] : 'https://placehold.co/300x300?text=Item'),
+          type: it.tipo === 'doacao' ? 'Doação' : it.tipo === 'troca' ? 'Troca' : 'Venda',
+          price: it.preco !== undefined ? `R$ ${String(it.preco).replace('.', ',')}` : null,
+          location: it.localizacao ?? '',
+          timeAgo: it.createdAt ? new Date(it.createdAt).toLocaleDateString() : '',
+          isMatched: !!it.hasMatch,
+          liked: true,
+          distanceKm: it.distancia ?? undefined,
+          user: it.usuario?.nome ? { name: it.usuario.nome, rating: Number(it.usuario.avaliacaoMedia ?? 0), avatar: it.usuario.avatar ?? '' } : undefined,
+        }));
+        setItems(mapped);
+      } catch (e: any) {
+        toast.error(typeof e?.message === 'string' ? e.message : 'Falha ao carregar itens curtidos');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLiked();
+  }, []);
+
+  const removeLike = async (id: string) => {
+    try {
+      await apiRemoveLikedItem(id);
+      setItems(prev => prev.filter(i => i.id !== id));
+      toast.success('Item removido dos curtidos');
+    } catch (e: any) {
+      toast.error(typeof e?.message === 'string' ? e.message : 'Falha ao remover like');
+    } finally {
+      setHeartPulse(prev => new Set(prev).add(id));
+      setTimeout(() => setHeartPulse(prev => { const n = new Set(prev); n.delete(id); return n; }), 450);
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -116,11 +153,17 @@ const LikedItems = () => {
     setSelectedIds(new Set(ids));
   };
 
-  const bulkRemove = () => {
-    if (selectedIds.size === 0) return;
-    setItems(prev => prev.filter(i => !selectedIds.has(i.id)));
-    setSelectedIds(new Set());
-    toast.success('Itens removidos da lista');
+  const bulkRemove = async () => {
+    const ids = Array.from(selectedIds);
+    try {
+      await Promise.all(ids.map(id => apiRemoveLikedItem(id)));
+      setItems(prev => prev.filter(i => !ids.includes(i.id)));
+      toast.success('Removidos dos curtidos');
+    } catch (e: any) {
+      toast.error(typeof e?.message === 'string' ? e.message : 'Falha ao remover seleção');
+    } finally {
+      setSelectedIds(new Set());
+    }
   };
 
   const filteredSorted = useMemo(() => {
@@ -238,7 +281,7 @@ const LikedItems = () => {
           <>
             <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4' : 'grid gap-3'}>
               {filteredSorted.map((item) => (
-                <WishlistCard key={item.id} item={item} viewMode={viewMode} selected={selectedIds.has(item.id)} onToggleSelect={() => toggleSelect(item.id)} onToggleLike={() => toggleLike(item.id)} pulsing={heartPulse.has(item.id)} />
+                <WishlistCard key={item.id} item={item} viewMode={viewMode} selected={selectedIds.has(item.id)} onToggleSelect={() => toggleSelect(item.id)} onToggleLike={() => removeLike(item.id)} pulsing={heartPulse.has(item.id)} />
               ))}
             </div>
             {/* Bulk select helpers */}

@@ -14,8 +14,9 @@ import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import { toast } from 'sonner';
 import '../styles/my-items.css';
+import { listUserItems, updateItemStatus, removeItem, Item as ApiItem } from '@/services/items';
 
-// Tipos
+// Tipos UI
 type Item = {
   id: string;
   title: string;
@@ -27,61 +28,63 @@ type Item = {
   matches?: number;
 };
 
-// Dados de exemplo - em uma aplicação real, isso viria de uma API
-const mockItems: { active: Item[]; pending: Item[]; inactive: Item[] } = {
-  active: [
-    {
-      id: '1',
-      title: 'Vestido Floral',
-      image: 'https://images.unsplash.com/photo-1566479179817-c1f3e70b14e2?w=300&h=300&fit=crop',
-      type: 'Troca',
-      status: 'Disponível',
-      date: 'Publicado em 15/08/2023',
-      views: 124,
-      matches: 3
-    },
-    {
-      id: '2',
-      title: 'Sapato Social Preto',
-      image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300&h=300&fit=crop',
-      type: 'Doação',
-      status: 'Match!',
-      date: 'Publicado em 10/08/2023',
-      views: 89,
-      matches: 1
-    },
-  ],
-  pending: [
-    {
-      id: '3',
-      title: 'Livro de Culinária Vegana',
-      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=300&fit=crop',
-      type: 'Troca',
-      status: 'Em Análise',
-      date: 'Enviado em 20/08/2023',
-    }
-  ],
-  inactive: [
-    {
-      id: '4',
-      title: 'Bicicleta Aro 29',
-      image: 'https://images.unsplash.com/photo-1507030584938-7f3a6d0c7d1b?w=300&h=300&fit=crop',
-      type: 'Venda',
-      status: 'Vendido',
-      date: 'Finalizado em 05/08/2023',
-    }
-  ]
-};
+// Helpers de mapeamento
+function mapApiItemToUi(item: ApiItem): Item {
+  const typeMap: Record<ApiItem['tipo'], Item['type']> = {
+    troca: 'Troca',
+    doacao: 'Doação',
+    venda: 'Venda',
+  };
+  const statusMap: Record<NonNullable<ApiItem['status']>, string> = {
+    ativo: 'Disponível',
+    pendente: 'Em Análise',
+    inativo: 'Inativo',
+    vendido: 'Vendido',
+    trocado: 'Trocado',
+  };
+  return {
+    id: item.id,
+    title: item.titulo,
+    image: item.imagens?.[0] || 'https://via.placeholder.com/300x300?text=Item',
+    type: typeMap[item.tipo],
+    status: item.status ? statusMap[item.status] : 'Disponível',
+    date: item.createdAt,
+    views: item.visualizacoes,
+    matches: item.matches,
+  };
+}
 
 const MyItems = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('active');
-  const [items, setItems] = useState<{ active: Item[]; pending: Item[]; inactive: Item[] }>(mockItems);
+  const [activeTab, setActiveTab] = useState<'active' | 'pending' | 'inactive'>('active');
+  const [items, setItems] = useState<{ active: Item[]; pending: Item[]; inactive: Item[] }>({ active: [], pending: [], inactive: [] });
   const [editing, setEditing] = useState<{ [key: string]: { title: string; type: Item['type'] } }>({});
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'recentes' | 'popularidade' | 'visualizacoes'>('recentes');
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const userId = localStorage.getItem('swapee-user-id');
+    if (!userId) {
+      toast.error('Usuário não identificado');
+      return;
+    }
+    setLoading(true);
+    listUserItems(userId, { page: 1, limit: 50, sortBy: 'createdAt', sortOrder: 'DESC' })
+      .then((res) => {
+        const uiItems = res.items.map(mapApiItemToUi);
+        const active = uiItems.filter((it) => it.status === 'Disponível');
+        const pending = uiItems.filter((it) => it.status === 'Em Análise');
+        const inactive = uiItems.filter((it) => ['Inativo', 'Vendido', 'Trocado'].includes(it.status));
+        setItems({ active, pending, inactive });
+      })
+      .catch((e) => {
+        toast.error(typeof e?.message === 'string' ? e.message : 'Falha ao carregar itens');
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -93,6 +96,7 @@ const MyItems = () => {
         return 'outline';
       case 'Vendido':
       case 'Inativo':
+      case 'Trocado':
         return 'outline';
       default:
         return 'default';
@@ -107,12 +111,13 @@ const MyItems = () => {
     onStartEdit: (item: Item) => void;
     onCancelEdit: (id: string) => void;
     onSaveEdit: (id: string) => void;
-    onDelete: (id: string) => void;
+    onCloseItem: (id: string) => void;
+    onDeleteItem: (id: string) => void;
     getTypeVariant: (type: string) => any;
     getStatusVariant: (status: string) => any;
   };
 
-  const Section = ({ value, items, viewMode, editing, onStartEdit, onCancelEdit, onSaveEdit, onDelete, getTypeVariant, getStatusVariant }: SectionProps) => (
+  const Section = ({ value, items, viewMode, editing, onStartEdit, onCancelEdit, onSaveEdit, onCloseItem, onDeleteItem, getTypeVariant, getStatusVariant }: SectionProps) => (
     <TabsContent value={value}>
       {items.length > 0 ? (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4' : 'grid gap-4'}>
@@ -129,7 +134,8 @@ const MyItems = () => {
               onStartEdit={() => onStartEdit(item)}
               onCancelEdit={() => onCancelEdit(item.id)}
               onSaveEdit={() => onSaveEdit(item.id)}
-              onDelete={() => onDelete(item.id)}
+              onClose={() => onCloseItem(item.id)}
+              onDelete={() => onDeleteItem(item.id)}
               getTypeVariant={getTypeVariant}
               getStatusVariant={getStatusVariant}
             />
@@ -158,12 +164,13 @@ const MyItems = () => {
     onStartEdit: () => void;
     onCancelEdit: () => void;
     onSaveEdit: () => void;
+    onClose: () => void;
     onDelete: () => void;
     getTypeVariant: (type: string) => any;
     getStatusVariant: (status: string) => any;
   };
 
-  const ItemCard = ({ item, viewMode, isEditing, editTitle, editType, onChangeTitle, onChangeType, onStartEdit, onCancelEdit, onSaveEdit, onDelete, getTypeVariant, getStatusVariant }: ItemCardProps) => {
+  const ItemCard = ({ item, viewMode, isEditing, editTitle, editType, onChangeTitle, onChangeType, onStartEdit, onCancelEdit, onSaveEdit, onClose, onDelete, getTypeVariant, getStatusVariant }: ItemCardProps) => {
     const [idx, setIdx] = useState(0);
     const images = [item.image, item.image + '&v=2', item.image + '&v=3'];
     const isGrid = viewMode === 'grid';
@@ -218,7 +225,7 @@ const MyItems = () => {
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={onDelete}>Confirmar</AlertDialogAction>
+                        <AlertDialogAction onClick={onClose}>Confirmar</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -305,14 +312,36 @@ const MyItems = () => {
     toast.success('Item atualizado');
   };
 
-  const deleteItem = (tab: keyof typeof items, id: string) => {
-    const item = items[tab].find(i => i.id === id);
-    if (!item) return;
-    setItems(prev => ({
-      ...prev,
-      [tab]: prev[tab].filter(i => i.id !== id)
-    }));
-    toast.success('Item excluído');
+  const closeItem = async (tab: keyof typeof items, id: string) => {
+    try {
+      const userId = localStorage.getItem('swapee-user-id');
+      if (!userId) throw new Error('Usuário não identificado');
+      await updateItemStatus(id, 'inativo');
+      const item = items[tab].find(i => i.id === id);
+      if (!item) return;
+      const moved = { ...item, status: 'Inativo' };
+      setItems(prev => ({
+        active: prev.active.filter(i => i.id !== id),
+        pending: prev.pending.filter(i => i.id !== id),
+        inactive: [moved, ...prev.inactive]
+      }));
+      toast.success('Anúncio encerrado');
+    } catch (e: any) {
+      toast.error(typeof e?.message === 'string' ? e.message : 'Falha ao encerrar');
+    }
+  };
+
+  const deleteItem = async (tab: keyof typeof items, id: string) => {
+    try {
+      await removeItem(id);
+      setItems(prev => ({
+        ...prev,
+        [tab]: prev[tab].filter(i => i.id !== id)
+      }));
+      toast.success('Item excluído');
+    } catch (e: any) {
+      toast.error(typeof e?.message === 'string' ? e.message : 'Falha ao excluir');
+    }
   };
 
   const sortItems = (list: Item[]) => {
@@ -322,7 +351,7 @@ const MyItems = () => {
       case 'visualizacoes':
         return [...list].sort((a, b) => (b.views ?? 0) - (a.views ?? 0));
       default:
-        return list; // mock: mantém ordem
+        return list; // mantém ordem
     }
   };
 
@@ -432,9 +461,9 @@ const MyItems = () => {
             </TabsList>
 
             <div className="mt-6">
-              <Section value="active" items={sortItems(filteredItems.active)} viewMode={viewMode} onStartEdit={startEdit} onCancelEdit={cancelEdit} onSaveEdit={(id) => saveEdit('active', id)} editing={editing} getTypeVariant={getTypeVariant} getStatusVariant={getStatusVariant} onDelete={(id) => {}} />
-              <Section value="pending" items={sortItems(filteredItems.pending)} viewMode={viewMode} onStartEdit={startEdit} onCancelEdit={cancelEdit} onSaveEdit={() => {}} editing={editing} getTypeVariant={getTypeVariant} getStatusVariant={getStatusVariant} onDelete={() => {}} />
-              <Section value="inactive" items={sortItems(filteredItems.inactive)} viewMode={viewMode} onStartEdit={startEdit} onCancelEdit={cancelEdit} onSaveEdit={() => {}} editing={editing} getTypeVariant={getTypeVariant} getStatusVariant={getStatusVariant} onDelete={(id) => deleteItem('inactive', id)} />
+              <Section value="active" items={sortItems(filteredItems.active)} viewMode={viewMode} onStartEdit={startEdit} onCancelEdit={cancelEdit} onSaveEdit={(id) => saveEdit('active', id)} editing={editing} getTypeVariant={getTypeVariant} getStatusVariant={getStatusVariant} onCloseItem={(id) => closeItem('active', id)} onDeleteItem={(id) => deleteItem('active', id)} />
+              <Section value="pending" items={sortItems(filteredItems.pending)} viewMode={viewMode} onStartEdit={startEdit} onCancelEdit={cancelEdit} onSaveEdit={() => {}} editing={editing} getTypeVariant={getTypeVariant} getStatusVariant={getStatusVariant} onCloseItem={(id) => closeItem('pending', id)} onDeleteItem={(id) => deleteItem('pending', id)} />
+              <Section value="inactive" items={sortItems(filteredItems.inactive)} viewMode={viewMode} onStartEdit={startEdit} onCancelEdit={cancelEdit} onSaveEdit={() => {}} editing={editing} getTypeVariant={getTypeVariant} getStatusVariant={getStatusVariant} onCloseItem={() => {}} onDeleteItem={(id) => deleteItem('inactive', id)} />
             </div>
           </Tabs>
         </main>

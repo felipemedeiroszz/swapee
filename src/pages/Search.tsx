@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Search as SearchIcon, Filter, MapPin, Grid2X2, List as ListIcon, X, SlidersHorizontal, Eye, Heart, Tag, Layers, Shirt, Book, Home, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import '../styles/search.css';
+import { listItems } from '@/services/items';
 
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +27,7 @@ const Search = () => {
   const [loading, setLoading] = useState(false);
   const [showSuggest, setShowSuggest] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [apiResults, setApiResults] = useState<any[]>([]);
   const navigate = useNavigate();
 
   const categories = [
@@ -77,22 +79,58 @@ const Search = () => {
     }
   ];
 
+  // Load items from API
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        const params: any = {
+          page: 1,
+          limit: 12,
+          search: searchQuery || undefined,
+          categoria: selectedCategory !== 'all' ? selectedCategory : undefined,
+          precoMin: priceRange[0],
+          precoMax: priceRange[1],
+          condicao: condition !== 'any' ? condition : undefined,
+          tipo: onlyTrade ? 'troca' : undefined,
+          sortBy: 'createdAt',
+          sortOrder: sort === 'recent' ? 'DESC' : 'DESC',
+        };
+        const res = await listItems(params);
+        const mapped = res.items.map((it: any) => ({
+          id: it.id,
+          title: it.titulo,
+          image: (it.imagens && it.imagens.length ? it.imagens[0] : 'https://placehold.co/300x300?text=Item'),
+          type: it.tipo === 'doacao' ? 'Doação' : it.tipo === 'troca' ? 'Troca' : 'Venda',
+          location: it.localizacao,
+          distance: it.latitude && it.longitude ? `${distance} km` : '',
+          price: it.preco ?? 0,
+        }));
+        setApiResults(mapped);
+      } catch (e) {
+        setApiResults([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchItems();
+  }, [searchQuery, selectedCategory, onlyTrade, condition, priceRange, sort]);
+
   const searchResults = useMemo(() => {
-    // Filter by category and simple flags
-    let r = allResults
+    const base = apiResults.length ? apiResults : allResults;
+    let r = base
       .filter(r => r.type === 'Doação')
       .filter(r => selectedCategory === 'all' || r.title.toLowerCase().includes(selectedCategory));
     if (onlyTrade) r = r.filter(r => r.type === 'Troca');
-    // Price range (mock): include all where price within range
     r = r.filter(r => r.price >= priceRange[0] && r.price <= priceRange[1]);
-    // Sort mock
     if (sort === 'near') {
       r = [...r].sort((a,b) => parseFloat(a.distance) - parseFloat(b.distance));
     } else if (sort === 'recent') {
       r = [...r].reverse();
     }
     return r;
-  }, [allResults, selectedCategory, onlyTrade, priceRange, sort]);
+  }, [apiResults, selectedCategory, onlyTrade, priceRange, sort]);
 
   const activeChips = [
     distance ? `Até ${distance}km` : null,

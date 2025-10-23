@@ -18,6 +18,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { createItem } from "@/services/items";
 
 const MAX_IMAGES = 6;
 
@@ -34,6 +35,10 @@ const schema = z.object({
   type: z.enum(["troca", "doacao"], {
     required_error: "Selecione se é troca ou doação",
   }),
+  condition: z.enum(["novo", "seminovo", "usado"], {
+    required_error: "Selecione a condição",
+  }),
+  location: z.string({ required_error: "Informe a localização" }),
   images: z
     .instanceof(FileList)
     .refine((files) => files.length <= MAX_IMAGES, `Máximo de ${MAX_IMAGES} imagens`)
@@ -152,6 +157,7 @@ export default function AddItem() {
   const { t } = useLanguage();
   const [previews, setPreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -162,6 +168,8 @@ export default function AddItem() {
       subcategory: "",
       price: "",
       type: "troca",
+      condition: "usado",
+      location: "",
     },
   });
 
@@ -196,17 +204,34 @@ export default function AddItem() {
   const imagesCount = useMemo(() => previews.length, [previews]);
   const imagesProgress = useMemo(() => (imagesCount / MAX_IMAGES) * 100, [imagesCount]);
 
-  const onSubmit = (values: FormValues) => {
-    // Simula envio; aqui poderíamos enviar para API
-    const categoryLabel = categories.find(c => c.value === values.category)?.label;
-    const subcategoryLabel = availableSubcategories.find(s => s.value === values.subcategory)?.label;
-    
-    toast({
-      title: "Item adicionado!",
-      description: `"${values.title}" cadastrado em ${categoryLabel} > ${subcategoryLabel} como ${values.type === "troca" ? "Troca" : "Doação"}.`,
-    });
-    form.reset({ title: "", description: "", category: "", subcategory: "", price: "", type: "troca" });
-    setPreviews([]);
+  const onSubmit = async (values: FormValues) => {
+    try {
+      setSaving(true);
+      const payload = {
+        titulo: values.title,
+        descricao: values.description,
+        categoria: values.category,
+        subcategoria: values.subcategory,
+        tipo: values.type,
+        preco: values.price ? Number(String(values.price).replace(/[,]/g, ".")) : undefined,
+        condicao: values.condition,
+        localizacao: values.location,
+      };
+      const imagens = values.images ? Array.from(values.images).slice(0, MAX_IMAGES) : [];
+      const created = await createItem(payload, imagens);
+
+      toast({
+        title: "Item criado",
+        description: `"${created.titulo}" foi cadastrado com sucesso.`,
+      });
+      form.reset({ title: "", description: "", category: "", subcategory: "", price: "", type: "troca", condition: "usado", location: "" });
+      setPreviews([]);
+    } catch (err: any) {
+      const msg = err?.message || "Erro ao criar item";
+      toast({ title: "Erro", description: msg });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -371,6 +396,45 @@ export default function AddItem() {
                   )}
                 />
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="condition"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Condição</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione a condição" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="novo">Novo</SelectItem>
+                              <SelectItem value="seminovo">Seminovo</SelectItem>
+                              <SelectItem value="usado">Usado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Localização</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ex.: São Paulo, SP" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
                 <FormField
                   control={form.control}
                   name="images"
@@ -437,7 +501,7 @@ export default function AddItem() {
                 />
 
                 <div className="flex gap-3">
-                  <Button type="submit" className="bg-gradient-primary text-white transition-transform hover:scale-[1.02] active:scale-[0.99]">Salvar</Button>
+                  <Button type="submit" className="bg-gradient-primary text-white transition-transform hover:scale-[1.02] active:scale-[0.99]" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
                   <Button type="button" variant="secondary" onClick={() => { form.reset(); setPreviews([]); }}>
                     Limpar
                   </Button>

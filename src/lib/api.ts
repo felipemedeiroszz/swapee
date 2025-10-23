@@ -1,8 +1,9 @@
-export const API_URL = import.meta.env.VITE_API_URL as string;
+const API_URL_ENV = import.meta.env.VITE_API_URL as string | undefined;
+export const API_URL = API_URL_ENV ?? '';
 
-if (!API_URL) {
+if (!API_URL_ENV) {
   // eslint-disable-next-line no-console
-  console.warn('VITE_API_URL is not set. Set it in .env.local');
+  console.warn('VITE_API_URL is not set. Falling back to same-origin for API requests.');
 }
 
 export type ApiError = {
@@ -69,6 +70,34 @@ export async function apiPut<T>(path: string, data?: unknown, init?: RequestInit
   const url = `${API_URL}${path}`;
   const res = await fetch(url, {
     method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      ...(init?.headers || {}),
+    },
+    body: data !== undefined ? JSON.stringify(data) : undefined,
+    ...init,
+  });
+
+  const isJson = res.headers.get('content-type')?.includes('application/json');
+  const body = isJson ? await res.json() : await res.text();
+
+  if (!res.ok) {
+    const err: ApiError = {
+      statusCode: res.status,
+      message: typeof body === 'string' ? body : body?.message || 'Erro na requisição',
+      error: body,
+    };
+    throw err;
+  }
+
+  return body as T;
+}
+
+export async function apiPatch<T>(path: string, data?: unknown, init?: RequestInit): Promise<T> {
+  const url = `${API_URL}${path}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',

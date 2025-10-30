@@ -1,16 +1,50 @@
 {
   "name": "vite_react_shadcn_ts",
+  "description": "Plataforma de troca e doação de itens usados",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "author": "Swepee",
+  "license": "MIT",
+  "homepage": "https://swapee.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/felipemedeiroszz/swepee/tree/main"
+  },
+  "bugs": {
+    "url": "https://github.com/felipemedeiroszz/swepee/issues"
+  },
+  "keywords": [
+    "swepee",
+    "app",
+    "react",
+    "shadcn",
+    "tailwind",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=22.20.0",
+    "npm": ">=10.9.3",
+    "yarn": "Please use npm"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:sync": "npx cap sync",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "cap:ios": "npm run build && npx cap sync && npx cap open ios",
+    "cap:android": "npm run build && npx cap sync && npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/app": "^7.1.0",
+    "@capacitor/ios": "^7.4.4",
+    "@capacitor/keyboard": "^7.0.3",
+    "@capacitor/status-bar": "^7.0.3",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -40,6 +74,7 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@tanstack/react-query": "^5.56.2",
+    "capacitor-plugin-safe-area": "^4.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -62,6 +97,8 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.5.5",

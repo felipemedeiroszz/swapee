@@ -1,4 +1,4 @@
-import { getToken } from '@/services/auth';
+import { getTokenSync } from '@/services/auth';
 
 const API_URL_ENV = import.meta.env.VITE_API_URL as string | undefined;
 export const API_URL = API_URL_ENV ?? '';
@@ -8,9 +8,9 @@ if (!API_URL_ENV) {
   console.warn('VITE_API_URL is not set. Falling back to same-origin for API requests.');
 }
 
-// Helper to get auth headers
+// Helper to get auth headers (sync version for immediate use)
 function getAuthHeaders(init?: RequestInit): HeadersInit {
-  const token = getToken();
+  const token = getTokenSync();
   const headers: HeadersInit = {
     'Accept': 'application/json',
     ...(init?.headers || {}),

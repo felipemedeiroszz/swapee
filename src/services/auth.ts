@@ -1,9 +1,37 @@
 import { apiPost, apiGet, ApiError } from '@/lib/api';
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
 
 // Storage keys
 const TOKEN_KEY = 'swepee_access_token';
 const REFRESH_TOKEN_KEY = 'swepee_refresh_token';
 const USER_KEY = 'swepee_user';
+
+// Helper functions for secure storage
+async function setSecureItem(key: string, value: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    await Preferences.set({ key, value });
+  } else {
+    localStorage.setItem(key, value);
+  }
+}
+
+async function getSecureItem(key: string): Promise<string | null> {
+  if (Capacitor.isNativePlatform()) {
+    const result = await Preferences.get({ key });
+    return result.value;
+  } else {
+    return localStorage.getItem(key);
+  }
+}
+
+async function removeSecureItem(key: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) {
+    await Preferences.remove({ key });
+  } else {
+    localStorage.removeItem(key);
+  }
+}
 
 // Types
 export type LinkOAuthPayload = {
@@ -73,39 +101,49 @@ export type RegisterResponse = {
 };
 
 // Token Management
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+export async function getToken(): Promise<string | null> {
+  return await getSecureItem(TOKEN_KEY);
 }
 
-export function getRefreshToken(): string | null {
-  return localStorage.getItem(REFRESH_TOKEN_KEY);
+export async function getRefreshToken(): Promise<string | null> {
+  return await getSecureItem(REFRESH_TOKEN_KEY);
 }
 
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
+export async function setToken(token: string): Promise<void> {
+  await setSecureItem(TOKEN_KEY, token);
 }
 
-export function setRefreshToken(refreshToken: string): void {
-  localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+export async function setRefreshToken(refreshToken: string): Promise<void> {
+  await setSecureItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
-export function clearTokens(): void {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
+export async function clearTokens(): Promise<void> {
+  await removeSecureItem(TOKEN_KEY);
+  await removeSecureItem(REFRESH_TOKEN_KEY);
+  await removeSecureItem(USER_KEY);
 }
 
-export function getUser(): User | null {
-  const userStr = localStorage.getItem(USER_KEY);
+export async function getUser(): Promise<User | null> {
+  const userStr = await getSecureItem(USER_KEY);
   return userStr ? JSON.parse(userStr) : null;
 }
 
-export function setUser(user: User): void {
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+export async function setUser(user: User): Promise<void> {
+  await setSecureItem(USER_KEY, JSON.stringify(user));
 }
 
-export function isAuthenticated(): boolean {
-  return !!getToken();
+export async function isAuthenticated(): Promise<boolean> {
+  const token = await getToken();
+  return !!token;
+}
+
+// Synchronous versions for backward compatibility (use async versions when possible)
+export function getTokenSync(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function getRefreshTokenSync(): string | null {
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
 // Auth API Functions
@@ -114,10 +152,18 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     const res = await apiPost<LoginResponse>('/auth/login', payload);
     
     if (res.success && res.data) {
-      setToken(res.data.accessToken);
-      setRefreshToken(res.data.refreshToken);
+      await setToken(res.data.accessToken);
+      await setRefreshToken(res.data.refreshToken);
       if (res.data.user) {
-        setUser(res.data.user);
+        await setUser(res.data.user);
+      } else {
+        // Se não veio o usuário na resposta, buscar do perfil
+        try {
+          const userProfile = await getProfile();
+          await setUser(userProfile);
+        } catch (profileError) {
+          console.warn('Não foi possível buscar perfil após login:', profileError);
+        }
       }
     }
     
@@ -133,8 +179,16 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
     const res = await apiPost<RegisterResponse>('/auth/register', payload);
     
     if (res.success && res.data) {
-      setToken(res.data.accessToken);
-      setRefreshToken(res.data.refreshToken);
+      await setToken(res.data.accessToken);
+      await setRefreshToken(res.data.refreshToken);
+      // Buscar perfil do usuário após registro
+      try {
+        const userProfile = await getProfile();
+        await setUser(userProfile);
+      } catch (profileError) {
+        // Se falhar ao buscar perfil, não impede o registro
+        console.warn('Não foi possível buscar perfil após registro:', profileError);
+      }
     }
     
     return res;
@@ -164,7 +218,7 @@ export async function resetPassword(payload: ResetPasswordPayload): Promise<void
 
 export async function refreshToken(): Promise<{ accessToken: string; refreshToken: string }> {
   try {
-    const refreshTokenValue = getRefreshToken();
+    const refreshTokenValue = await getRefreshToken();
     if (!refreshTokenValue) {
       throw new Error('No refresh token available');
     }
@@ -174,12 +228,12 @@ export async function refreshToken(): Promise<{ accessToken: string; refreshToke
       { refreshToken: refreshTokenValue }
     );
     
-    setToken(res.accessToken);
-    setRefreshToken(res.refreshToken);
+    await setToken(res.accessToken);
+    await setRefreshToken(res.refreshToken);
     
     return res;
   } catch (err) {
-    clearTokens();
+    await clearTokens();
     const e = err as ApiError;
     throw e;
   }
@@ -187,7 +241,7 @@ export async function refreshToken(): Promise<{ accessToken: string; refreshToke
 
 export async function logout(): Promise<void> {
   try {
-    const token = getToken();
+    const token = await getToken();
     if (token) {
       await apiPost('/auth/logout', {}, {
         headers: {
@@ -199,14 +253,14 @@ export async function logout(): Promise<void> {
     // Logout even if API call fails
     console.warn('Logout API call failed:', err);
   } finally {
-    clearTokens();
+    await clearTokens();
   }
 }
 
 export async function getProfile(): Promise<User> {
   try {
     const res = await apiGet<User>('/auth/me');
-    setUser(res);
+    await setUser(res);
     return res;
   } catch (err) {
     const e = err as ApiError;

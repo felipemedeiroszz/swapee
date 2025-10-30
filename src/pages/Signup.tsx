@@ -39,8 +39,8 @@ const Signup = () => {
       });
 
       if (response.success) {
-        // Redireciona para login com mensagem de sucesso
-        navigate("/login", { state: { message: "Conta criada com sucesso! Faça login para continuar." } });
+        // Redireciona direto para a home após registro bem-sucedido
+        navigate("/app");
       }
     } catch (err) {
       const apiError = err as ApiError;

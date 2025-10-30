@@ -15,6 +15,7 @@ import Header from '@/components/Header';
 import { toast } from 'sonner';
 import '../styles/my-items.css';
 import { listUserItems, updateItemStatus, removeItem, Item as ApiItem } from '@/services/items';
+import { buildImageUrl } from '@/lib/images';
 
 // Tipos UI
 type Item = {
@@ -42,10 +43,14 @@ function mapApiItemToUi(item: ApiItem): Item {
     vendido: 'Vendido',
     trocado: 'Trocado',
   };
+
+  // Construir URL da imagem usando CDN
+  const image = buildImageUrl(item.imagens?.[0]);
+
   return {
     id: item.id,
     title: item.titulo,
-    image: item.imagens?.[0] || 'https://via.placeholder.com/300x300?text=Item',
+    image,
     type: typeMap[item.tipo],
     status: item.status ? statusMap[item.status] : 'Disponível',
     date: item.createdAt,

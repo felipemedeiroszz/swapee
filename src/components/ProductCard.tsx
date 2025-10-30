@@ -146,6 +146,11 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
               src={product.images[currentImageIndex]}
               alt={product.title}
               className="select-none"
+              onError={(e) => {
+                // Se a imagem falhar ao carregar, usar placeholder
+                const target = e.target as HTMLImageElement;
+                target.src = '/placeholder.svg';
+              }}
             />
           </div>
           {product.images.length > 1 && (
@@ -158,7 +163,15 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
                   onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
                   aria-label={`Imagem ${idx + 1}`}
                 >
-                  <img src={src} alt="thumb" className="w-full h-full object-cover" />
+                  <img 
+                    src={src} 
+                    alt="thumb" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/placeholder.svg';
+                    }}
+                  />
                 </button>
               ))}
             </div>
@@ -244,7 +257,15 @@ const ProductCard = ({ product, onSwipeRight, onSwipeLeft }: ProductCardProps) =
       {/* Lightbox */}
       {lightbox && (
         <div className="lightbox" onClick={() => setLightbox(false)}>
-          <img src={product.images[currentImageIndex]} alt={product.title} className="lightbox-img" />
+          <img 
+            src={product.images[currentImageIndex]} 
+            alt={product.title} 
+            className="lightbox-img"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = '/placeholder.svg';
+            }}
+          />
         </div>
       )}
     </div>

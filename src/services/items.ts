@@ -124,7 +124,7 @@ export async function createItem(payload: CreateItemPayload, imagens?: File[]): 
       imagens.forEach((file) => fd.append('imagens', file));
     }
 
-    const res = await apiUpload<Item>('/api/items', fd);
+    const res = await apiUpload<Item>('/items', fd);
     return res;
   } catch (err) {
     const e = err as ApiError;
@@ -157,7 +157,7 @@ export async function listItems(params: ListItemsParams = {}): Promise<ListItems
   if (params.sortBy) qs.set('sortBy', params.sortBy);
   if (params.sortOrder) qs.set('sortOrder', params.sortOrder);
 
-  return apiGet<ListItemsResponse>(`/api/items?${qs.toString()}`);
+  return apiGet<ListItemsResponse>(`/items?${qs.toString()}`);
 }
 
 // Lista itens de um usuário específico
@@ -186,7 +186,7 @@ export async function listUserItems(userId: string, params: ListItemsParams = {}
   if (params.sortBy) qs.set('sortBy', params.sortBy);
   if (params.sortOrder) qs.set('sortOrder', params.sortOrder);
 
-  return apiGet<ListItemsResponse>(`/api/items/user/${encodeURIComponent(userId)}?${qs.toString()}`);
+  return apiGet<ListItemsResponse>(`/items/user/${encodeURIComponent(userId)}?${qs.toString()}`);
 }
 
 // Buscar item por ID
@@ -195,43 +195,43 @@ export async function getItemById(id: string, incrementView?: boolean): Promise<
   if (incrementView !== undefined) {
     qs.set('incrementView', String(incrementView));
   }
-  const url = qs.toString() ? `/api/items/${encodeURIComponent(id)}?${qs.toString()}` : `/api/items/${encodeURIComponent(id)}`;
+  const url = qs.toString() ? `/items/${encodeURIComponent(id)}?${qs.toString()}` : `/items/${encodeURIComponent(id)}`;
   return apiGet<Item>(url);
 }
 
-// Atualizar item (PATCH /api/items/{id})
+// Atualizar item (PATCH /items/{id})
 export async function updateItem(id: string, payload: UpdateItemPayload): Promise<Item> {
-  return apiPatch<Item>(`/api/items/${encodeURIComponent(id)}`, payload);
+  return apiPatch<Item>(`/items/${encodeURIComponent(id)}`, payload);
 }
 
-// Remover item (DELETE /api/items/{id})
+// Remover item (DELETE /items/{id})
 export async function removeItem(id: string): Promise<{ message?: string }> {
-  return apiDelete<{ message?: string }>(`/api/items/${encodeURIComponent(id)}`);
+  return apiDelete<{ message?: string }>(`/items/${encodeURIComponent(id)}`);
 }
 
-// Adicionar imagens (POST /api/items/{id}/images)
+// Adicionar imagens (POST /items/{id}/images)
 export async function addItemImages(id: string, imagens: File[]): Promise<AddImagesResponse> {
   const fd = new FormData();
   imagens.forEach((file) => fd.append('imagens', file));
-  return apiUpload<AddImagesResponse>(`/api/items/${encodeURIComponent(id)}/images`, fd);
+  return apiUpload<AddImagesResponse>(`/items/${encodeURIComponent(id)}/images`, fd);
 }
 
-// Remover imagem (DELETE /api/items/{id}/images/{imageIndex})
+// Remover imagem (DELETE /items/{id}/images/{imageIndex})
 export async function removeItemImage(id: string, imageIndex: number | string): Promise<{ message?: string }> {
-  return apiDelete<{ message?: string }>(`/api/items/${encodeURIComponent(id)}/images/${encodeURIComponent(String(imageIndex))}`);
+  return apiDelete<{ message?: string }>(`/items/${encodeURIComponent(id)}/images/${encodeURIComponent(String(imageIndex))}`);
 }
 
-// Incrementar visualizações (POST /api/items/{id}/views)
+// Incrementar visualizações (POST /items/{id}/views)
 export async function incrementItemViews(id: string): Promise<{ message?: string }> {
-  return apiPost<{ message?: string }>(`/api/items/${encodeURIComponent(id)}/views`);
+  return apiPost<{ message?: string }>(`/items/${encodeURIComponent(id)}/views`);
 }
 
-// Obter estatísticas (GET /api/items/{id}/stats)
+// Obter estatísticas (GET /items/{id}/stats)
 export async function getItemStats(id: string): Promise<ItemStats> {
-  return apiGet<ItemStats>(`/api/items/${encodeURIComponent(id)}/stats`);
+  return apiGet<ItemStats>(`/items/${encodeURIComponent(id)}/stats`);
 }
 
-// Atualizar status (PATCH /api/items/{id}/status)
+// Atualizar status (PATCH /items/{id}/status)
 export async function updateItemStatus(id: string, status: 'ativo' | 'pendente' | 'inativo' | 'vendido' | 'trocado'): Promise<Item> {
-  return apiPatch<Item>(`/api/items/${encodeURIComponent(id)}/status`, { status });
+  return apiPatch<Item>(`/items/${encodeURIComponent(id)}/status`, { status });
 }

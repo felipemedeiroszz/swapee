@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { login, ApiError } from "@/services/auth";
 import "../styles/login.css";
 
 const Login = () => {
@@ -11,17 +12,34 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus("Entrando...");
-    // Simula autenticação
-    setTimeout(() => {
-      setLoading(false);
+    setError(null);
+
+    try {
+      const response = await login({ email, senha: password });
+      
+      if (response.success) {
+        setStatus("Login realizado com sucesso!");
+        // Se não tiver dados do usuário na resposta, buscar do perfil
+        if (!response.data.user) {
+          // Usuário será buscado quando necessário
+        }
+        setTimeout(() => {
+          navigate("/app");
+        }, 500);
+      }
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.message || "Erro ao fazer login. Verifique suas credenciais.";
+      setError(errorMessage);
       setStatus(null);
-      navigate("/app");
-    }, 900);
+      setLoading(false);
+    }
   };
 
   return (
@@ -41,6 +59,12 @@ const Login = () => {
           {status && (
             <div className="status-msg text-sm text-pink-900 px-3 py-2 mb-4">
               {status}
+            </div>
+          )}
+
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
+              {error}
             </div>
           )}
 

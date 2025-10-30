@@ -66,7 +66,7 @@ export async function getDiscoveryFeed(params: DiscoveryFeedParams = {}): Promis
   if (params.precoMin !== undefined) qs.set('precoMin', String(params.precoMin));
   if (params.precoMax !== undefined) qs.set('precoMax', String(params.precoMax));
   if (params.tags && params.tags.length) params.tags.forEach(tag => qs.append('tags', tag));
-  return apiGet<DiscoveryFeedResponse>(`/api/discovery/feed?${qs.toString()}`);
+  return apiGet<DiscoveryFeedResponse>(`/discovery/feed?${qs.toString()}`);
 }
 
 export type LikeItemResponse = {
@@ -77,11 +77,11 @@ export type LikeItemResponse = {
 };
 
 export async function likeItem(itemId: string, tipo: 'like' | 'superlike' = 'like'): Promise<LikeItemResponse> {
-  return apiPost<LikeItemResponse>(`/api/discovery/like/${encodeURIComponent(itemId)}`, { tipo });
+  return apiPost<LikeItemResponse>(`/discovery/like/${encodeURIComponent(itemId)}`, { tipo });
 }
 
 export async function passItem(itemId: string): Promise<{ message?: string }> {
-  return apiPost<{ message?: string }>(`/api/discovery/pass/${encodeURIComponent(itemId)}`);
+  return apiPost<{ message?: string }>(`/discovery/pass/${encodeURIComponent(itemId)}`);
 }
 
 export type LikedItemsResponse = {
@@ -101,11 +101,11 @@ export async function listLikedItems(page = 1, limit = 20): Promise<LikedItemsRe
   const qs = new URLSearchParams();
   qs.set('page', String(page));
   qs.set('limit', String(limit));
-  return apiGet<LikedItemsResponse>(`/api/discovery/liked-items?${qs.toString()}`);
+  return apiGet<LikedItemsResponse>(`/discovery/liked-items?${qs.toString()}`);
 }
 
 export async function removeLikedItem(itemId: string): Promise<{ message?: string }> {
-  return apiDelete<{ message?: string }>(`/api/discovery/liked-items/${encodeURIComponent(itemId)}`);
+  return apiDelete<{ message?: string }>(`/discovery/liked-items/${encodeURIComponent(itemId)}`);
 }
 
 
@@ -126,5 +126,5 @@ export type ListMatchesResponse = {
 };
 
 export async function listMatches(): Promise<ListMatchesResponse> {
-  return apiGet<ListMatchesResponse>('/api/discovery/matches');
+  return apiGet<ListMatchesResponse>('/discovery/matches');
 }

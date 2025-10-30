@@ -49,7 +49,7 @@ export async function listUserConversations(
   qs.set('filter', (opts.filter ?? 'all'));
   qs.set('page', String(opts.page ?? 1));
   qs.set('limit', String(opts.limit ?? 20));
-  return apiGet<ListUserConversationsResponse>(`/api/conversations/user/${encodeURIComponent(userId)}?${qs.toString()}`);
+  return apiGet<ListUserConversationsResponse>(`/conversations/user/${encodeURIComponent(userId)}?${qs.toString()}`);
 }
 
 export type MensagemAnexo = {
@@ -93,7 +93,7 @@ export async function listMessages(
   const qs = new URLSearchParams();
   qs.set('limit', String(opts.limit ?? 50));
   if (opts.before) qs.set('before', opts.before);
-  return apiGet<ListMessagesResponse>(`/api/conversations/${encodeURIComponent(conversacaoId)}/messages?${qs.toString()}`);
+  return apiGet<ListMessagesResponse>(`/conversations/${encodeURIComponent(conversacaoId)}/messages?${qs.toString()}`);
 }
 
 export type SendMessagePayload = {
@@ -119,41 +119,41 @@ export async function sendMessage(
       form.append('anexos', file, file.name);
     }
   }
-  return apiUpload<SendMessageResponse>(`/api/conversations/${encodeURIComponent(conversacaoId)}/messages`, form);
+  return apiUpload<SendMessageResponse>(`/conversations/${encodeURIComponent(conversacaoId)}/messages`, form);
 }
 
 export type MarkReadResponse = { message?: string };
 export async function markConversationRead(conversacaoId: string): Promise<MarkReadResponse> {
-  return apiPut<MarkReadResponse>(`/api/conversations/${encodeURIComponent(conversacaoId)}/read`);
+  return apiPut<MarkReadResponse>(`/conversations/${encodeURIComponent(conversacaoId)}/read`);
 }
 
 export type UpdateMuteResponse = { message?: string };
 export async function updateConversationMute(conversacaoId: string, mute: boolean): Promise<UpdateMuteResponse> {
   const qs = new URLSearchParams();
   qs.set('mute', String(mute));
-  return apiPut<UpdateMuteResponse>(`/api/conversations/${encodeURIComponent(conversacaoId)}/mute?${qs.toString()}`);
+  return apiPut<UpdateMuteResponse>(`/conversations/${encodeURIComponent(conversacaoId)}/mute?${qs.toString()}`);
 }
 
 export type UpdatePinResponse = { message?: string };
 export async function updateConversationPin(conversacaoId: string, pin: boolean): Promise<UpdatePinResponse> {
   const qs = new URLSearchParams();
   qs.set('pin', String(pin));
-  return apiPut<UpdatePinResponse>(`/api/conversations/${encodeURIComponent(conversacaoId)}/pin?${qs.toString()}`);
+  return apiPut<UpdatePinResponse>(`/conversations/${encodeURIComponent(conversacaoId)}/pin?${qs.toString()}`);
 }
 
 export type ArchiveConversationResponse = { message?: string };
 export async function archiveConversation(conversacaoId: string): Promise<ArchiveConversationResponse> {
-  return apiDelete<ArchiveConversationResponse>(`/api/conversations/${encodeURIComponent(conversacaoId)}`);
+  return apiDelete<ArchiveConversationResponse>(`/conversations/${encodeURIComponent(conversacaoId)}`);
 }
 
 export type BlockUserPayload = { motivo: string };
 export type BlockUserResponse = { message?: string };
 export async function blockUser(userId: string, data: BlockUserPayload): Promise<BlockUserResponse> {
-  return apiPost<BlockUserResponse>(`/api/conversations/users/${encodeURIComponent(userId)}/block`, data);
+  return apiPost<BlockUserResponse>(`/conversations/users/${encodeURIComponent(userId)}/block`, data);
 }
 
 export type ReportUserPayload = { motivo: string; detalhes?: string };
 export type ReportUserResponse = { message?: string };
 export async function reportUser(userId: string, data: ReportUserPayload): Promise<ReportUserResponse> {
-  return apiPost<ReportUserResponse>(`/api/conversations/users/${encodeURIComponent(userId)}/report`, data);
+  return apiPost<ReportUserResponse>(`/conversations/users/${encodeURIComponent(userId)}/report`, data);
 }

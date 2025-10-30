@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Mail, ArrowLeft } from "lucide-react";
+import { forgotPassword, ApiError } from "@/services/auth";
 import "../styles/login.css";
 
 const ForgotPassword = () => {
@@ -9,19 +10,27 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus("Enviando email de recuperação...");
+    setError(null);
     
-    // Simula envio de email
-    setTimeout(() => {
+    try {
+      await forgotPassword({ email });
       setLoading(false);
       setStatus(null);
       setEmailSent(true);
-    }, 1500);
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.message || "Erro ao enviar email. Tente novamente.";
+      setError(errorMessage);
+      setStatus(null);
+      setLoading(false);
+    }
   };
 
   if (emailSent) {
@@ -95,6 +104,12 @@ const ForgotPassword = () => {
           {status && (
             <div className="status-msg text-sm text-pink-900 px-3 py-2 mb-4">
               {status}
+            </div>
+          )}
+
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
+              {error}
             </div>
           )}
 

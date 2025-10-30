@@ -103,8 +103,44 @@
 
 /* Field icons */
 .field { position: relative; }
-.field .icon { position: absolute; left: 10px; top: 65%; transform: translateY(-50%); color: var(--pink-600); pointer-events: none; }
-.field .toggle { position: absolute; right: 10px; top: 65%; transform: translateY(-50%); color: var(--pink-600); pointer-events: none; }
+.field .icon { 
+  position: absolute; 
+  left: 10px; 
+  top: calc(1.25rem + 0.25rem + 1.25rem);
+  transform: translateY(-50%); 
+  color: var(--pink-600); 
+  pointer-events: none; 
+  z-index: 1;
+}
+.field .toggle { 
+  position: absolute; 
+  right: 10px; 
+  top: calc(1.25rem + 0.25rem + 1.25rem);
+  transform: translateY(-50%); 
+  color: var(--pink-600); 
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 4px;
+  min-width: 24px;
+  min-height: 24px;
+}
+.field .toggle:hover {
+  color: var(--pink-700);
+  opacity: 0.8;
+}
+.field .toggle:focus {
+  outline: none;
+  color: var(--pink-700);
+  opacity: 1;
+}
+.field .toggle:active {
+  transform: translateY(-50%) scale(0.95);
+}
 
 /* Animations sequencing */
 .seq-in { animation: seq-in 600ms ease both; }

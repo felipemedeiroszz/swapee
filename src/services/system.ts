@@ -8,7 +8,7 @@ export type CleanupResult = {
 };
 
 export async function getWelcomeMessage(): Promise<string> {
-  const res = await apiGet<any>('/api');
+  const res = await apiGet<any>('/');
   if (typeof res === 'string') return res;
   if (res?.message && typeof res.message === 'string') return res.message;
   try {
@@ -20,6 +20,6 @@ export async function getWelcomeMessage(): Promise<string> {
 
 export async function runManualCleanup(): Promise<CleanupResult> {
   // API documenta 201 Created com corpo JSON
-  const res = await apiPost<CleanupResult>('/api/cleanup/run-manual', {});
+  const res = await apiPost<CleanupResult>('/cleanup/run-manual', {});
   return res;
 }

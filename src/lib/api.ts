@@ -1,9 +1,26 @@
+import { getToken } from '@/services/auth';
+
 const API_URL_ENV = import.meta.env.VITE_API_URL as string | undefined;
 export const API_URL = API_URL_ENV ?? '';
 
 if (!API_URL_ENV) {
   // eslint-disable-next-line no-console
   console.warn('VITE_API_URL is not set. Falling back to same-origin for API requests.');
+}
+
+// Helper to get auth headers
+function getAuthHeaders(init?: RequestInit): HeadersInit {
+  const token = getToken();
+  const headers: HeadersInit = {
+    'Accept': 'application/json',
+    ...(init?.headers || {}),
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 }
 
 export type ApiError = {
@@ -16,10 +33,7 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
   const res = await fetch(url, {
     method: 'GET',
-    headers: {
-      'Accept': 'application/json',
-      ...(init?.headers || {}),
-    },
+    headers: getAuthHeaders(init),
     ...init,
   });
 
@@ -40,14 +54,17 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
 
 export async function apiPost<T>(path: string, data?: unknown, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
+  const headers = getAuthHeaders(init);
+  
+  // Only set Content-Type for JSON, not for FormData
+  if (!(data instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    headers,
+    body: data instanceof FormData ? data : (data !== undefined ? JSON.stringify(data) : undefined),
     ...init,
   });
 
@@ -68,14 +85,16 @@ export async function apiPost<T>(path: string, data?: unknown, init?: RequestIni
 
 export async function apiPut<T>(path: string, data?: unknown, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
+  const headers = getAuthHeaders(init);
+  
+  if (!(data instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   const res = await fetch(url, {
     method: 'PUT',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    headers,
+    body: data instanceof FormData ? data : (data !== undefined ? JSON.stringify(data) : undefined),
     ...init,
   });
 
@@ -96,14 +115,16 @@ export async function apiPut<T>(path: string, data?: unknown, init?: RequestInit
 
 export async function apiPatch<T>(path: string, data?: unknown, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
+  const headers = getAuthHeaders(init);
+  
+  if (!(data instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
   const res = await fetch(url, {
     method: 'PATCH',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    headers,
+    body: data instanceof FormData ? data : (data !== undefined ? JSON.stringify(data) : undefined),
     ...init,
   });
 
@@ -126,10 +147,7 @@ export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T>
   const url = `${API_URL}${path}`;
   const res = await fetch(url, {
     method: 'DELETE',
-    headers: {
-      'Accept': 'application/json',
-      ...(init?.headers || {}),
-    },
+    headers: getAuthHeaders(init),
     ...init,
   });
 
@@ -150,13 +168,12 @@ export async function apiDelete<T>(path: string, init?: RequestInit): Promise<T>
 
 export async function apiUpload<T>(path: string, formData: FormData, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
+  const headers = getAuthHeaders(init);
+  // DO NOT set Content-Type for FormData; browser handles boundary
+  
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      // DO NOT set Content-Type for FormData; browser handles boundary
-      ...(init?.headers || {}),
-    },
+    headers,
     body: formData,
     ...init,
   });

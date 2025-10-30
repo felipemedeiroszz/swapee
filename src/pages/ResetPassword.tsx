@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { resetPassword, ApiError } from "@/services/auth";
 import "../styles/login.css";
 
 const ResetPassword = () => {
@@ -50,16 +51,31 @@ const ResetPassword = () => {
     if (!validateForm()) {
       return;
     }
+
+    if (!tokenFromUrl) {
+      setErrors({ ...errors, token: "Token de redefinição não encontrado. Verifique o link do email." });
+      return;
+    }
     
     setLoading(true);
     setStatus("Redefinindo senha...");
     
-    // Simula redefinição de senha
-    setTimeout(() => {
+    try {
+      await resetPassword({
+        token: tokenFromUrl,
+        email,
+        novaSenha: password,
+      });
+      
       setLoading(false);
       setStatus(null);
       setPasswordReset(true);
-    }, 1500);
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.message || "Erro ao redefinir senha. Verifique o token e tente novamente.";
+      setStatus(errorMessage);
+      setLoading(false);
+    }
   };
 
   if (passwordReset) {

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { register, ApiError } from "@/services/auth";
 import "../styles/signup.css";
 
 const Signup = () => {
@@ -16,6 +17,7 @@ const Signup = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const onChange = (
     e: React.ChangeEvent<HTMLInputElement>
@@ -27,11 +29,25 @@ const Signup = () => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulação de cadastro
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      const response = await register({
+        nome: form.nome,
+        email: form.email,
+        senha: form.senha,
+      });
+
+      if (response.success) {
+        // Redireciona para login com mensagem de sucesso
+        navigate("/login", { state: { message: "Conta criada com sucesso! Faça login para continuar." } });
+      }
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.message || "Erro ao criar conta. Tente novamente.";
+      setError(errorMessage);
       setLoading(false);
-      navigate("/login");
-    }, 1000);
+    }
   };
 
   const isEmailValid = useMemo(() => /[^\s@]+@[^\s@]+\.[^\s@]+/.test(form.email), [form.email]);
@@ -57,6 +73,12 @@ const Signup = () => {
         <div className="signup-card p-6 md:p-8 animate-in fade-in-50 slide-in-from-bottom-2">
           <h1 className="text-2xl font-extrabold text-gray-900 mb-1">Criar conta</h1>
           <p className="text-gray-600 mb-6">Preencha seus dados para começar</p>
+
+          {error && (
+            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
+              {error}
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={onSubmit} className="space-y-4">
@@ -107,7 +129,8 @@ const Signup = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+                className="toggle"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -132,7 +155,8 @@ const Signup = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 top-8 text-gray-400 hover:text-gray-600"
+                className="toggle"
+                aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
                 {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

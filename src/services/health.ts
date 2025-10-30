@@ -17,9 +17,9 @@ export type HealthResponse = {
 
 export type AppInfo = Record<string, unknown>;
 
-export const getHealthOverall = () => apiGet<HealthResponse>('/api/health');
-export const getHealthDatabase = () => apiGet<HealthResponse>('/api/health/database');
-export const getHealthRedis = () => apiGet<HealthResponse>('/api/health/redis');
-export const getHealthMemory = () => apiGet<HealthResponse>('/api/health/memory');
-export const getHealthDisk = () => apiGet<HealthResponse>('/api/health/disk');
-export const getHealthInfo = () => apiGet<AppInfo>('/api/health/info');
+export const getHealthOverall = () => apiGet<HealthResponse>('/health');
+export const getHealthDatabase = () => apiGet<HealthResponse>('/health/database');
+export const getHealthRedis = () => apiGet<HealthResponse>('/health/redis');
+export const getHealthMemory = () => apiGet<HealthResponse>('/health/memory');
+export const getHealthDisk = () => apiGet<HealthResponse>('/health/disk');
+export const getHealthInfo = () => apiGet<AppInfo>('/health/info');

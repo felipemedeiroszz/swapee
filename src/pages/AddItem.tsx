@@ -18,7 +18,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { createItem } from "@/services/items";
+import { ApiError } from "@/lib/api";
+import { pickPhotos } from "@/lib/camera";
 
 const MAX_IMAGES = 6;
 
@@ -155,9 +159,11 @@ const categories = Object.entries(categoriesWithSubcategories).map(([value, data
 export default function AddItem() {
   const { toast } = useToast();
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [previews, setPreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [selectingPhotos, setSelectingPhotos] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -203,6 +209,57 @@ export default function AddItem() {
 
   const imagesCount = useMemo(() => previews.length, [previews]);
   const imagesProgress = useMemo(() => (imagesCount / MAX_IMAGES) * 100, [imagesCount]);
+  const isNative = Capacitor.isNativePlatform();
+
+  // Handler para selecionar fotos da galeria no mobile
+  const handlePickPhotos = async () => {
+    if (!isNative) {
+      // No browser, dispara o clique no input file
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      input?.click();
+      return;
+    }
+
+    try {
+      setSelectingPhotos(true);
+      const remainingSlots = MAX_IMAGES - imagesCount;
+      if (remainingSlots <= 0) {
+        toast({
+          title: "Limite atingido",
+          description: `Você já selecionou o máximo de ${MAX_IMAGES} imagens.`,
+        });
+        return;
+      }
+
+      const files = await pickPhotos(remainingSlots, 'gallery');
+      
+      if (files.length > 0) {
+        // Criar um FileList simulado para o react-hook-form
+        const dt = new DataTransfer();
+        const currentFiles = form.getValues('images');
+        if (currentFiles) {
+          Array.from(currentFiles).slice(0, MAX_IMAGES - files.length).forEach((f) => dt.items.add(f));
+        }
+        files.forEach((f) => dt.items.add(f));
+        form.setValue('images', dt.files);
+        
+        toast({
+          title: "Fotos selecionadas",
+          description: `${files.length} foto(s) adicionada(s) da galeria.`,
+        });
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string };
+      if (err.message !== 'Seleção cancelada') {
+        toast({
+          title: "Erro ao selecionar fotos",
+          description: err.message || "Não foi possível acessar a galeria.",
+        });
+      }
+    } finally {
+      setSelectingPhotos(false);
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
     try {
@@ -221,14 +278,25 @@ export default function AddItem() {
       const created = await createItem(payload, imagens);
 
       toast({
-        title: "Item criado",
-        description: `"${created.titulo}" foi cadastrado com sucesso.`,
+        title: "Item criado com sucesso!",
+        description: `"${created.titulo}" foi cadastrado e já está disponível.`,
       });
+      
+      // Limpar formulário
       form.reset({ title: "", description: "", category: "", subcategory: "", price: "", type: "troca", condition: "usado", location: "" });
       setPreviews([]);
-    } catch (err: any) {
-      const msg = err?.message || "Erro ao criar item";
-      toast({ title: "Erro", description: msg });
+      
+      // Redirecionar para a home após 1 segundo
+      setTimeout(() => {
+        navigate("/app");
+      }, 1000);
+    } catch (err) {
+      const apiError = err as ApiError;
+      const errorMessage = apiError.message || "Erro ao criar item. Verifique os dados e tente novamente.";
+      toast({ 
+        title: "Erro ao criar item", 
+        description: errorMessage,
+      });
     } finally {
       setSaving(false);
     }
@@ -442,47 +510,90 @@ export default function AddItem() {
                     <FormItem>
                       <FormLabel>Imagens (até {MAX_IMAGES})</FormLabel>
                       <FormControl>
-                        <div
-                          className={
-                            `relative mt-1 flex flex-col items-center justify-center gap-2 rounded-lg border bg-background/50 p-6 text-center transition-colors ${
-                              isDragging ? 'border-primary/70 bg-accent' : 'border-dashed hover:border-primary/50'
-                            }`
-                          }
-                          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                          onDragLeave={() => setIsDragging(false)}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            setIsDragging(false);
-                            const dt = new DataTransfer();
-                            Array.from(e.dataTransfer.files)
-                              .slice(0, MAX_IMAGES)
-                              .forEach((f) => dt.items.add(f));
-                            field.onChange(dt.files);
-                          }}
-                        >
-                          <input
-                            className="absolute inset-0 z-10 cursor-pointer opacity-0"
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={(e) => field.onChange(e.target.files)}
-                          />
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="pointer-events-none select-none">
-                                <p className="text-sm text-muted-foreground">Arraste as imagens aqui ou clique para selecionar</p>
-                                <p className="text-xs text-muted-foreground">Máx. {MAX_IMAGES} imagens • Formatos: JPG, PNG, WEBP</p>
+                        <div className="space-y-3">
+                          <div
+                            className={
+                              `relative mt-1 flex flex-col items-center justify-center gap-2 rounded-lg border bg-background/50 p-6 text-center transition-colors ${
+                                isDragging ? 'border-primary/70 bg-accent' : 'border-dashed hover:border-primary/50'
+                              } ${selectingPhotos ? 'opacity-50 pointer-events-none' : ''}`
+                            }
+                            onDragOver={(e) => { 
+                              if (!isNative) {
+                                e.preventDefault(); 
+                                setIsDragging(true);
+                              }
+                            }}
+                            onDragLeave={() => {
+                              if (!isNative) {
+                                setIsDragging(false);
+                              }
+                            }}
+                            onDrop={(e) => {
+                              if (!isNative) {
+                                e.preventDefault();
+                                setIsDragging(false);
+                                const dt = new DataTransfer();
+                                Array.from(e.dataTransfer.files)
+                                  .slice(0, MAX_IMAGES)
+                                  .forEach((f) => dt.items.add(f));
+                                field.onChange(dt.files);
+                              }
+                            }}
+                            onClick={!isNative ? undefined : handlePickPhotos}
+                          >
+                            {!isNative && (
+                              <input
+                                className="absolute inset-0 z-10 cursor-pointer opacity-0"
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={(e) => field.onChange(e.target.files)}
+                              />
+                            )}
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="pointer-events-none select-none">
+                                  {isNative ? (
+                                    <>
+                                      <p className="text-sm text-muted-foreground">Toque para selecionar fotos da galeria</p>
+                                      <p className="text-xs text-muted-foreground">Máx. {MAX_IMAGES} imagens • Formatos: JPG, PNG, WEBP</p>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <p className="text-sm text-muted-foreground">Arraste as imagens aqui ou clique para selecionar</p>
+                                      <p className="text-xs text-muted-foreground">Máx. {MAX_IMAGES} imagens • Formatos: JPG, PNG, WEBP</p>
+                                    </>
+                                  )}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {isNative ? 'Selecione fotos da sua galeria' : 'Você pode soltar múltiplas imagens de uma vez'}
+                              </TooltipContent>
+                            </Tooltip>
+                            {selectingPhotos && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg">
+                                <p className="text-sm text-muted-foreground">Abrindo galeria...</p>
                               </div>
-                            </TooltipTrigger>
-                            <TooltipContent>Você pode soltar múltiplas imagens de uma vez</TooltipContent>
-                          </Tooltip>
-                          <div className="w-full mt-3 space-y-2">
-                            <div className="flex items-center justify-between text-xs text-muted-foreground">
-                              <span>{imagesCount} / {MAX_IMAGES} selecionadas</span>
-                              <span>{Math.round(imagesProgress)}%</span>
+                            )}
+                            <div className="w-full mt-3 space-y-2">
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>{imagesCount} / {MAX_IMAGES} selecionadas</span>
+                                <span>{Math.round(imagesProgress)}%</span>
+                              </div>
+                              <Progress value={imagesProgress} className="h-2" />
                             </div>
-                            <Progress value={imagesProgress} className="h-2" />
                           </div>
+                          {isNative && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={handlePickPhotos}
+                              disabled={selectingPhotos || imagesCount >= MAX_IMAGES}
+                              className="w-full"
+                            >
+                              {selectingPhotos ? 'Abrindo galeria...' : imagesCount >= MAX_IMAGES ? 'Limite atingido' : `Selecionar fotos da galeria (${MAX_IMAGES - imagesCount} restantes)`}
+                            </Button>
+                          )}
                         </div>
                       </FormControl>
                       <FormMessage />

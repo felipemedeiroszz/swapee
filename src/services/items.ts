@@ -20,7 +20,7 @@ export type Item = {
   dataEncerramento?: string;
   destacado?: boolean;
   tags?: string[];
-  informacoesExtras?: Record<string, any>;
+  informacoesExtras?: Record<string, unknown>;
   usuario?: {
     id: string;
     nome?: string;
@@ -45,7 +45,7 @@ export type CreateItemPayload = {
   longitude?: number;
   destacado?: boolean;
   tags?: string[];
-  informacoesExtras?: Record<string, any>;
+  informacoesExtras?: Record<string, unknown>;
 };
 
 export type UpdateItemPayload = Partial<Omit<CreateItemPayload, 'tipo'>> & {
@@ -121,11 +121,23 @@ export async function createItem(payload: CreateItemPayload, imagens?: File[]): 
       fd.append('informacoesExtras', JSON.stringify(payload.informacoesExtras));
     }
     if (imagens && imagens.length) {
-      imagens.forEach((file) => fd.append('imagens', file));
+      imagens.forEach((file) => fd.append('images', file));
     }
 
-    const res = await apiUpload<Item>('/items', fd);
-    return res;
+    // A API pode retornar { success, message, data } ou diretamente o Item
+    const res = await apiUpload<{ success: boolean; message?: string; data?: Item } | Item>('/items', fd);
+    
+    // Se veio no formato { success, data }, extrair o item de data
+    if (typeof res === 'object' && res !== null && 'success' in res && 'data' in res) {
+      if (res.success && res.data) {
+        return res.data;
+      } else {
+        throw new Error(res.message || 'Erro ao criar item');
+      }
+    }
+    
+    // Se veio diretamente como Item
+    return res as Item;
   } catch (err) {
     const e = err as ApiError;
     throw e;
@@ -212,7 +224,7 @@ export async function removeItem(id: string): Promise<{ message?: string }> {
 // Adicionar imagens (POST /items/{id}/images)
 export async function addItemImages(id: string, imagens: File[]): Promise<AddImagesResponse> {
   const fd = new FormData();
-  imagens.forEach((file) => fd.append('imagens', file));
+  imagens.forEach((file) => fd.append('images', file));
   return apiUpload<AddImagesResponse>(`/items/${encodeURIComponent(id)}/images`, fd);
 }
 
